@@ -1,0 +1,56 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+*.o
+*.a
+
+# Go specific
+*.test
+/vendor/
+/Godeps/
+
+# Dependency directories (remove this if you want to commit vendor/)
+vendor/
+
+# Hyperledger Fabric specific
+.fabric-vscode/
+fabric-samples/
+/bin/
+/config/
+
+# Output of the go coverage tool
+*.coverprofile
+coverage.txt
+cover.out
+
+# Log files
+*.log
+logs/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.env
+
+# Build artifacts
+build/
+dist/
+
+# Certificate files and keys
+*.pem
+*.key
+*.crt
+*.ca
+wallet/
+
+# Local configuration files that may contain sensitive data
+connection-*.json
+connection-*.yaml
+local_*
