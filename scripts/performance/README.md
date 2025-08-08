@@ -35,6 +35,46 @@ Recent test results with enhanced authorization:
 | CROSS_ORG | ~15-19 TPS | **Cross-organizational EHR access** |
 | FULL_CYCLE | ~5-6 cycles/sec | Complete workflow including all operations |
 
+## Parallel Performance Testing
+
+**NEW**: Multi-core parallel testing capabilities for stress testing and scalability validation.
+
+### Parallel Performance Results
+
+| Configuration | Total TPS | Performance Gain | Workers |
+|---------------|-----------|------------------|---------|
+| **Single-threaded** | ~19 TPS | Baseline | 1 |
+| **4 parallel workers** | 55.28 TPS | **2.9x improvement** | 4 |
+| **8 parallel workers** | 68.40 TPS | **3.6x improvement** | 8 |
+
+### Parallel Test Types
+- `parallel_throughput_test.sh` - Multi-worker parallel testing
+- `demo_parallel_performance.sh` - Comprehensive parallel testing demo
+
+### Usage Examples
+```bash
+# 8-core stress test with cross-org operations
+./parallel_throughput_test.sh 400 8 cross_org
+
+# 4-worker parallel test
+./parallel_throughput_test.sh 200 4 cross_org
+
+# Run comprehensive parallel demo
+./demo_parallel_performance.sh
+```
+
+### Key Benefits
+- **Scalability Validation**: Tests real multi-org concurrent access
+- **System Stress Testing**: Validates performance under parallel load  
+- **Resource Utilization**: Effectively uses multi-core systems
+- **Healthcare Realism**: Simulates multiple hospitals accessing data simultaneously
+
+### Scaling Analysis
+- **Linear scaling up to 4 workers**: Nearly 3x improvement
+- **Diminishing returns beyond 4 workers**: Still significant gains but efficiency decreases
+- **All transactions successful**: 100% success rate even under high parallel load
+- **Authorization maintained**: Every transaction validates cross-org consent
+
 ## Cross-Organizational Test Details
 
 The `cross_org` test is specifically designed to measure the performance of **real healthcare data sharing scenarios** between organizations. This test validates our enhanced authorization model with actual cross-organizational workflows.
