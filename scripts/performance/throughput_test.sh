@@ -17,7 +17,7 @@ setup_fabric_environment || exit 1
 
 # Test parameters
 ITERATIONS=${1:-$DEFAULT_TEST_ITERATIONS}
-TEST_TYPE=${2:-"create"}  # create, read, update, delete, full_cycle
+TEST_TYPE=${2:-"create"}  # create, read, update, delete, consent, full_cycle, cross_org
 OUTPUT_FILE="${RESULTS_DIR}/throughput_test_$(date +%Y%m%d_%H%M%S).csv"
 
 # Function to display usage
@@ -34,6 +34,7 @@ show_usage() {
     echo "  update      Test EHR update throughput"
     echo "  delete      Test EHR deletion throughput"
     echo "  consent     Test consent granting throughput"
+    echo "  cross_org   Test cross-organizational access throughput"
     echo "  full_cycle  Test complete CRUD cycle"
     echo ""
     echo "Examples:"
@@ -200,6 +201,232 @@ test_full_cycle_throughput() {
     echo "SUMMARY,FULL_CYCLE,${iterations},${successful_cycles},${total_duration},${tps}" >> "${OUTPUT_FILE}"
 }
 
+# Function to run cross-organizational access throughput test
+test_cross_org_throughput() {
+    local iterations=$1
+    print_info "Starting cross-organizational access throughput test with ${iterations} iterations"
+    
+    echo "Test Type,Transaction ID,Patient ID,Operation,Start Time,End Time,Duration (seconds),Status" > "${OUTPUT_FILE}"
+    
+    # Setup test data - create EHRs with Org1
+    print_info "Setting up test data (Org1 creates EHRs)..."
+    setup_org1_env
+    for i in $(seq 1 10); do
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $i)"
+        create_ehr "${patient_id}" "Cross-Org Patient ${i}" > /dev/null 2>&1
+        # Grant consent to Org2
+        grant_consent "${patient_id}" "[\"Org2MSP\"]" > /dev/null 2>&1
+    done
+    
+    local start_test=$(date +%s.%N)
+    local successful_transactions=0
+    
+    for i in $(seq 1 $iterations); do
+        # Cycle through the 10 created patients
+        local patient_index=$(( (i - 1) % 10 + 1 ))
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $patient_index)"
+        local transaction_start=$(date +%s.%N)
+        
+        print_info "Org2 reading Org1's EHR for patient ${patient_id} (${i}/${iterations})"
+        
+        # Switch to Org2 and try to read Org1's EHR
+        setup_org2_env
+        local duration
+        duration=$(read_ehr "${patient_id}")
+        local exit_status=$?
+        
+        local transaction_end=$(date +%s.%N)
+        local status="SUCCESS"
+        
+        if [ $exit_status -ne 0 ]; then
+            status="FAILED"
+            print_warning "Cross-org transaction ${i} failed"
+        else
+            ((successful_transactions++))
+        fi
+        
+        echo "CROSS_ORG,${i},${patient_id},READ,${transaction_start},${transaction_end},${duration},${status}" >> "${OUTPUT_FILE}"
+    done
+    
+    local end_test=$(date +%s.%N)
+    local total_duration=$(echo "${end_test} - ${start_test}" | bc)
+    local tps=$(echo "scale=2; ${successful_transactions} / ${total_duration}" | bc)
+    
+    print_success "Cross-organizational access test completed!"
+    print_info "Total transactions: ${iterations}"
+    print_info "Successful transactions: ${successful_transactions}"
+    print_info "Total time: ${total_duration} seconds"
+    print_info "Throughput: ${tps} TPS"
+    
+    echo "SUMMARY,CROSS_ORG,${iterations},${successful_transactions},${total_duration},${tps}" >> "${OUTPUT_FILE}"
+}
+
+# Function to run consent granting throughput test
+test_consent_throughput() {
+    local iterations=$1
+    print_info "Starting consent granting throughput test with ${iterations} iterations"
+    
+    echo "Test Type,Transaction ID,Patient ID,Start Time,End Time,Duration (seconds),Status" > "${OUTPUT_FILE}"
+    
+    # Setup test data - create EHRs first
+    print_info "Setting up test data..."
+    setup_org1_env
+    for i in $(seq 1 10); do
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $i)"
+        create_ehr "${patient_id}" "Consent Test Patient ${i}" > /dev/null 2>&1
+    done
+    
+    local start_test=$(date +%s.%N)
+    local successful_transactions=0
+    
+    for i in $(seq 1 $iterations); do
+        # Cycle through the 10 created patients
+        local patient_index=$(( (i - 1) % 10 + 1 ))
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $patient_index)"
+        local transaction_start=$(date +%s.%N)
+        
+        print_info "Granting consent for patient ${patient_id} (${i}/${iterations})"
+        
+        local duration
+        duration=$(grant_consent "${patient_id}" "[\"Org2MSP\"]")
+        local exit_status=$?
+        
+        local transaction_end=$(date +%s.%N)
+        local status="SUCCESS"
+        
+        if [ $exit_status -ne 0 ]; then
+            status="FAILED"
+            print_warning "Consent transaction ${i} failed"
+        else
+            ((successful_transactions++))
+        fi
+        
+        echo "CONSENT,${i},${patient_id},${transaction_start},${transaction_end},${duration},${status}" >> "${OUTPUT_FILE}"
+    done
+    
+    local end_test=$(date +%s.%N)
+    local total_duration=$(echo "${end_test} - ${start_test}" | bc)
+    local tps=$(echo "scale=2; ${successful_transactions} / ${total_duration}" | bc)
+    
+    print_success "Consent granting test completed!"
+    print_info "Total transactions: ${iterations}"
+    print_info "Successful transactions: ${successful_transactions}"
+    print_info "Total time: ${total_duration} seconds"
+    print_info "Throughput: ${tps} TPS"
+    
+    echo "SUMMARY,CONSENT,${iterations},${successful_transactions},${total_duration},${tps}" >> "${OUTPUT_FILE}"
+}
+
+# Function to run update throughput test
+test_update_throughput() {
+    local iterations=$1
+    print_info "Starting EHR update throughput test with ${iterations} iterations"
+    
+    echo "Test Type,Transaction ID,Patient ID,Start Time,End Time,Duration (seconds),Status" > "${OUTPUT_FILE}"
+    
+    # Setup test data - create EHRs first
+    print_info "Setting up test data..."
+    setup_org1_env
+    for i in $(seq 1 10); do
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $i)"
+        create_ehr "${patient_id}" "Update Test Patient ${i}" > /dev/null 2>&1
+    done
+    
+    local start_test=$(date +%s.%N)
+    local successful_transactions=0
+    
+    for i in $(seq 1 $iterations); do
+        # Cycle through the 10 created patients
+        local patient_index=$(( (i - 1) % 10 + 1 ))
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $patient_index)"
+        local transaction_start=$(date +%s.%N)
+        
+        print_info "Updating EHR for patient ${patient_id} (${i}/${iterations})"
+        
+        local duration
+        duration=$(update_ehr "${patient_id}" "Updated Patient ${i}")
+        local exit_status=$?
+        
+        local transaction_end=$(date +%s.%N)
+        local status="SUCCESS"
+        
+        if [ $exit_status -ne 0 ]; then
+            status="FAILED"
+            print_warning "Update transaction ${i} failed"
+        else
+            ((successful_transactions++))
+        fi
+        
+        echo "UPDATE,${i},${patient_id},${transaction_start},${transaction_end},${duration},${status}" >> "${OUTPUT_FILE}"
+    done
+    
+    local end_test=$(date +%s.%N)
+    local total_duration=$(echo "${end_test} - ${start_test}" | bc)
+    local tps=$(echo "scale=2; ${successful_transactions} / ${total_duration}" | bc)
+    
+    print_success "Update throughput test completed!"
+    print_info "Total transactions: ${iterations}"
+    print_info "Successful transactions: ${successful_transactions}"
+    print_info "Total time: ${total_duration} seconds"
+    print_info "Throughput: ${tps} TPS"
+    
+    echo "SUMMARY,UPDATE,${iterations},${successful_transactions},${total_duration},${tps}" >> "${OUTPUT_FILE}"
+}
+
+# Function to run delete throughput test
+test_delete_throughput() {
+    local iterations=$1
+    print_info "Starting EHR delete throughput test with ${iterations} iterations"
+    
+    echo "Test Type,Transaction ID,Patient ID,Start Time,End Time,Duration (seconds),Status" > "${OUTPUT_FILE}"
+    
+    # Setup test data - create EHRs first
+    print_info "Setting up test data..."
+    setup_org1_env
+    for i in $(seq 1 $iterations); do
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $i)"
+        create_ehr "${patient_id}" "Delete Test Patient ${i}" > /dev/null 2>&1
+    done
+    
+    local start_test=$(date +%s.%N)
+    local successful_transactions=0
+    
+    for i in $(seq 1 $iterations); do
+        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $i)"
+        local transaction_start=$(date +%s.%N)
+        
+        print_info "Deleting EHR for patient ${patient_id} (${i}/${iterations})"
+        
+        local duration
+        duration=$(delete_ehr "${patient_id}")
+        local exit_status=$?
+        
+        local transaction_end=$(date +%s.%N)
+        local status="SUCCESS"
+        
+        if [ $exit_status -ne 0 ]; then
+            status="FAILED"
+            print_warning "Delete transaction ${i} failed"
+        else
+            ((successful_transactions++))
+        fi
+        
+        echo "DELETE,${i},${patient_id},${transaction_start},${transaction_end},${duration},${status}" >> "${OUTPUT_FILE}"
+    done
+    
+    local end_test=$(date +%s.%N)
+    local total_duration=$(echo "${end_test} - ${start_test}" | bc)
+    local tps=$(echo "scale=2; ${successful_transactions} / ${total_duration}" | bc)
+    
+    print_success "Delete throughput test completed!"
+    print_info "Total transactions: ${iterations}"
+    print_info "Successful transactions: ${successful_transactions}"
+    print_info "Total time: ${total_duration} seconds"
+    print_info "Throughput: ${tps} TPS"
+    
+    echo "SUMMARY,DELETE,${iterations},${successful_transactions},${total_duration},${tps}" >> "${OUTPUT_FILE}"
+}
+
 # Main execution
 main() {
     print_info "=== EHR Management System Throughput Testing ==="
@@ -241,6 +468,18 @@ main() {
             ;;
         "read")
             test_read_throughput "$ITERATIONS"
+            ;;
+        "update")
+            test_update_throughput "$ITERATIONS"
+            ;;
+        "delete")
+            test_delete_throughput "$ITERATIONS"
+            ;;
+        "consent")
+            test_consent_throughput "$ITERATIONS"
+            ;;
+        "cross_org")
+            test_cross_org_throughput "$ITERATIONS"
             ;;
         "full_cycle")
             test_full_cycle_throughput "$ITERATIONS"

@@ -67,7 +67,7 @@ create_ehr() {
 # Function to grant consent for a patient
 grant_consent() {
     local patient_id="$1"
-    local authorized_users="${2:-[\"org1admin\"]}"
+    local authorized_users="${2:-[\"Org2MSP\"]}"  # Default to cross-org access for performance testing
     local start_time=$(date +%s.%N)
     
     peer chaincode invoke \
@@ -151,4 +151,78 @@ delete_ehr() {
     local end_time=$(date +%s.%N)
     local duration=$(echo "${end_time} - ${start_time}" | bc)
     echo "${duration}"
+}
+
+# Function to setup Org1 environment
+setup_org1_env() {
+    export CORE_PEER_TLS_ENABLED=true
+    export CORE_PEER_LOCALMSPID="Org1MSP"
+    export CORE_PEER_TLS_ROOTCERT_FILE="${TEST_NETWORK_PATH}/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem"
+    export CORE_PEER_MSPCONFIGPATH="${TEST_NETWORK_PATH}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+    export CORE_PEER_ADDRESS="${PEER0_ORG1_ENDPOINT}"
+}
+
+# Function to setup Org2 environment
+setup_org2_env() {
+    export CORE_PEER_TLS_ENABLED=true
+    export CORE_PEER_LOCALMSPID="Org2MSP"
+    export CORE_PEER_TLS_ROOTCERT_FILE="${TEST_NETWORK_PATH}/organizations/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem"
+    export CORE_PEER_MSPCONFIGPATH="${TEST_NETWORK_PATH}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp"
+    export CORE_PEER_ADDRESS="${PEER0_ORG2_ENDPOINT}"
+}
+
+# Function to create EHR with specific organization
+create_ehr_as_org() {
+    local org="$1"
+    local patient_id="$2"
+    local patient_name="${3:-Test Patient}"
+    
+    # Switch to appropriate org
+    if [ "$org" = "Org1" ]; then
+        setup_org1_env
+    elif [ "$org" = "Org2" ]; then
+        setup_org2_env
+    else
+        echo "Error: Unknown organization $org"
+        return 1
+    fi
+    
+    create_ehr "$patient_id" "$patient_name"
+}
+
+# Function to read EHR with specific organization
+read_ehr_as_org() {
+    local org="$1"
+    local patient_id="$2"
+    
+    # Switch to appropriate org
+    if [ "$org" = "Org1" ]; then
+        setup_org1_env
+    elif [ "$org" = "Org2" ]; then
+        setup_org2_env
+    else
+        echo "Error: Unknown organization $org"
+        return 1
+    fi
+    
+    read_ehr "$patient_id"
+}
+
+# Function to grant consent for cross-org access
+grant_cross_org_consent() {
+    local patient_id="$1"
+    local from_org="$2"
+    local to_org="$3"
+    
+    # Switch to the organization that owns the EHR (to grant consent)
+    if [ "$from_org" = "Org1" ]; then
+        setup_org1_env
+        grant_consent "$patient_id" "[\"${to_org}MSP\"]"
+    elif [ "$from_org" = "Org2" ]; then
+        setup_org2_env
+        grant_consent "$patient_id" "[\"${to_org}MSP\"]"
+    else
+        echo "Error: Unknown organization $from_org"
+        return 1
+    fi
 }

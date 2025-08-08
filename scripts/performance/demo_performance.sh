@@ -53,6 +53,16 @@ print_info "Running CONSENT throughput test..."
 ./throughput_test.sh 10 consent
 echo ""
 
+# Demo 4: Cross-organizational access testing
+print_info "Demo 4: Cross-Organizational Access Testing (15 operations)"
+echo "This tests Org2's ability to access Org1's EHRs with patient consent."
+echo "Org1 creates EHRs, grants consent to Org2, then Org2 reads the data."
+echo ""
+
+print_info "Running CROSS-ORG throughput test..."
+./throughput_test.sh 15 cross_org
+echo ""
+
 print_success "=== Performance Testing Demo Complete! ==="
 print_info "All results have been saved to the ../results/ directory"
 print_info "Check the CSV files for detailed metrics and analysis"
