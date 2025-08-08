@@ -54,3 +54,6 @@ wallet/
 connection-*.json
 connection-*.yaml
 local_*
+
+# Reports and performance outputs
+scripts/results/*
