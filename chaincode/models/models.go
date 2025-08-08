@@ -21,6 +21,7 @@ type MetaData struct {
 type EHR struct {
 	PatientID   string       `json:"patientID"`
 	PatientName string       `json:"patientName"`
+	CreatedBy   string       `json:"createdBy"`  // The provider who created this EHR
 	HealthData  FHIRResource `json:"healthData"` // Structured HL7 FHIR data
 	LastUpdated string       `json:"lastUpdated"`
 }

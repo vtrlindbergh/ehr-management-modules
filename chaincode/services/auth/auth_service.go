@@ -26,13 +26,31 @@ func (a *AuthService) GetClientIdentity(ctx contractapi.TransactionContextInterf
 	return enrollmentID, nil
 }
 
-// IsProviderAuthorized checks whether the current client is listed in the patient's consent.
+// IsProviderAuthorized checks whether the current client is the creator or is listed in the patient's consent.
 func (a *AuthService) IsProviderAuthorized(ctx contractapi.TransactionContextInterface, patientID string) (bool, error) {
 	clientID, err := a.GetClientIdentity(ctx)
 	if err != nil {
 		return false, err
 	}
 
+	// First, check if the client is the creator of the EHR
+	ehrKey := "EHR-" + patientID
+	ehrBytes, err := ctx.GetStub().GetState(ehrKey)
+	if err != nil {
+		log.Printf("Failed to retrieve EHR for patientID %s: %v", patientID, err)
+		return false, fmt.Errorf("failed to retrieve EHR: %v", err)
+	}
+	if ehrBytes != nil {
+		var ehr struct {
+			CreatedBy string `json:"createdBy"`
+		}
+		if err := json.Unmarshal(ehrBytes, &ehr); err == nil && ehr.CreatedBy == clientID {
+			log.Printf("Provider %s is the creator of EHR for patientID %s", clientID, patientID)
+			return true, nil
+		}
+	}
+
+	// If not the creator, check consent record
 	consentKey := "CONSENT-" + patientID
 	consentBytes, err := ctx.GetStub().GetState(consentKey)
 	if err != nil {

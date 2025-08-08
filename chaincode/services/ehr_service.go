@@ -21,6 +21,15 @@ func (e *EHRService) CreateEHR(ctx contractapi.TransactionContextInterface, ehrJ
 		return fmt.Errorf("failed to parse EHR JSON: %v. Ensure the JSON is valid and properly formatted", err)
 	}
 
+	// Set the creator identity
+	authSvc := auth.AuthService{}
+	createdBy, err := authSvc.GetClientIdentity(ctx)
+	if err != nil {
+		log.Printf("Failed to get client identity: %v", err)
+		return fmt.Errorf("failed to get client identity: %v", err)
+	}
+	ehr.CreatedBy = createdBy
+
 	exists, err := e.ehrExists(ctx, ehr.PatientID)
 	if err != nil {
 		log.Printf("Error checking if EHR exists for patientID %s: %v", ehr.PatientID, err)
@@ -31,7 +40,7 @@ func (e *EHRService) CreateEHR(ctx contractapi.TransactionContextInterface, ehrJ
 		return fmt.Errorf("EHR for patientID '%s' already exists. Use UpdateEHR to modify it", ehr.PatientID)
 	}
 
-	log.Printf("CreateEHR transaction for patientID: %s", ehr.PatientID)
+	log.Printf("CreateEHR transaction for patientID: %s, createdBy: %s", ehr.PatientID, ehr.CreatedBy)
 	ehrBytes, err := json.Marshal(ehr)
 	if err != nil {
 		log.Printf("Failed to marshal EHR for patientID %s: %v", ehr.PatientID, err)

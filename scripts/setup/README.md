@@ -1,6 +1,6 @@
 # Network Setup and Validation Scripts
 
-This directory contains scripts for setting up the Hyperledger Fabric test network and validating the EHR smart contract functionality.
+This directory contains scripts for setting up the Hyperledger Fabric test network and validating cross-organizational healthcare data sharing.
 
 ## Scripts Overview
 
@@ -38,9 +38,90 @@ cd scripts/setup
 ./network_setup.sh --skip-wait
 ```
 
-### 2. `manual_validation.sh` - Smart Contract Validation
+### 2. `test_cross_org_workflow.sh` - Cross-Organizational Healthcare Test ⭐
 
-**Purpose**: Validates all EHR smart contract operations step by step.
+**Purpose**: Demonstrates real healthcare data sharing between organizations with proper consent management.
+
+**Test Scenario**:
+1. Hospital A (Org1) creates patient EHR
+2. Hospital A verifies access to their own patient data
+3. Hospital B (Org2) attempts access - properly denied without consent
+4. Patient grants consent to Hospital B through Hospital A
+5. Hospital B successfully accesses patient data with consent
+6. Hospital B specialist updates patient record
+
+**Key Features**:
+- ✅ Creator authorization (hospitals can access EHRs they create)
+- ✅ Consent-based access control
+- ✅ Cross-organizational data sharing
+- ✅ Security validation (unauthorized access blocked)
+- ✅ Real healthcare workflow simulation
+
+**Usage**:
+```bash
+cd scripts/setup
+./test_cross_org_workflow.sh
+```
+
+**Expected Output**:
+```
+[SUCCESS] === Cross-Org Test Completed ===
+[INFO] ✅ Real healthcare data sharing workflow demonstrated:
+[INFO]    1. Hospital A (Org1) created patient record
+[INFO]    2. Hospital A can read their own patient record
+[INFO]    3. Hospital B (Org2) was denied access without consent
+[INFO]    4. Patient granted consent to Hospital B
+[INFO]    5. Hospital B can now read patient record with consent
+[INFO]    6. Hospital B specialist updated patient record
+[INFO] 
+[INFO] This demonstrates authentic cross-organizational healthcare data sharing!
+```
+
+### 3. `manual_validation.sh` - Cross-Organizational CRUD Test ⭐
+
+**Purpose**: Comprehensive CRUD (Create, Read, Update) test demonstrating operations from both organizations with proper authorization and consent management.
+
+**Test Scenarios**:
+- **Org1 CRUD Operations**: Create → Read (creator auth) → Update (creator auth)
+- **Cross-Org Authorization**: Org2 denied access → Consent granted → Org2 reads/updates with consent
+- **Org2 CRUD Operations**: Create → Read (creator auth) → Cross-org consent validation
+- **Security Validation**: Unauthorized access properly blocked
+
+**Key Features**:
+- ✅ Creator authorization (organizations access their own EHRs)
+- ✅ Consent-based cross-organizational access
+- ✅ Comprehensive security testing
+- ✅ Real healthcare workflow simulation
+- ✅ Both organizations demonstrate full CRUD capabilities
+
+**Usage**:
+```bash
+cd scripts/setup
+./manual_validation.sh
+```
+
+**Expected Output**:
+```
+[SUCCESS] === Cross-Organizational CRUD Test Completed ===
+
+[INFO] 🎯 CRUD Operations Summary:
+[INFO]    📝 CREATE: Both organizations successfully created patient EHRs
+[INFO]    👁️  READ: Creator authorization and consent-based access validated
+[INFO]    ✏️  UPDATE: Both creator and consent-based updates successful
+
+[INFO] 🔒 Security Validations:
+[INFO]    ✅ Creator authorization (organizations can access their own EHRs)
+[INFO]    ✅ Consent-based authorization (cross-org access with patient consent)
+[INFO]    ✅ Access control (unauthorized access properly blocked)
+
+[INFO] 🏥 Healthcare Workflow Validations:
+[INFO]    ✅ Hospital A creates and manages patient records
+[INFO]    ✅ Hospital B creates and manages different patient records
+[INFO]    ✅ Cross-organizational consultation with proper consent
+[INFO]    ✅ Specialist updates from authorized external organizations
+```
+
+**Note**: DELETE operations are omitted as EHRs are typically archived rather than deleted in real healthcare systems for audit and compliance purposes.
 
 **What it validates**:
 - Step 4: Create EHR record with FHIR-compliant data
