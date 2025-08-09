@@ -88,6 +88,29 @@ grant_consent() {
     echo "${duration}"
 }
 
+# Function to revoke consent for a patient
+revoke_consent() {
+    local patient_id="$1"
+    local start_time=$(date +%s.%N)
+    
+    peer chaincode invoke \
+        -o ${ORDERER_ENDPOINT} \
+        --tls \
+        --cafile "${ORDERER_CA}" \
+        -C ${CHANNEL_NAME} \
+        -n ${CHAINCODE_NAME} \
+        --peerAddresses ${PEER0_ORG1_ENDPOINT} \
+        --tlsRootCertFiles ${PEER0_ORG1_TLS_ROOTCERT} \
+        --peerAddresses ${PEER0_ORG2_ENDPOINT} \
+        --tlsRootCertFiles ${PEER0_ORG2_TLS_ROOTCERT} \
+        -c "{\"function\":\"RevokeConsent\",\"Args\":[\"${patient_id}\"]}" \
+        2>/dev/null
+    
+    local end_time=$(date +%s.%N)
+    local duration=$(echo "${end_time} - ${start_time}" | bc)
+    echo "${duration}"
+}
+
 # Function to read an EHR record
 read_ehr() {
     local patient_id="$1"

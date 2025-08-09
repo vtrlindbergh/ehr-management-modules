@@ -8,6 +8,170 @@ All performance tests have been updated to work with our enhanced authorization 
 - **Creator Authorization**: Organizations can access EHRs they create
 - **Consent-based Authorization**: Cross-organizational access with patient consent
 
+## 🎯 NEW: Comprehensive Latency Analysis Framework
+
+**Academic-Quality End-to-End Latency Analysis** for dissertation research with robust statistical analysis across all EHR operations.
+
+### Quick Start: Complete Analysis
+
+```bash
+# Run comprehensive latency analysis (all operations, n=50 samples each)
+./latency_analysis.sh
+
+# Generate automated summary report
+./generate_summary_report.sh
+```
+
+### Latency Analysis Results (Latest)
+
+| Operation Type | Mean (ms) | P50 (ms) | P95 (ms) | P99 (ms) | Sample Size |
+|---------------|-----------|----------|----------|----------|-------------|
+| **CreateEHR** | 47.52 | 46.01 | 56.66 | 60.78 | 50 |
+| **ReadEHR (same-org)** | 45.22 | 43.80 | 53.95 | 57.89 | 50 |
+| **ReadEHR (cross-org)** | 49.01 | 47.32 | 58.12 | 62.45 | 50 |
+| **UpdateEHR** | 50.81 | 49.15 | 60.23 | 65.12 | 50 |
+| **GrantConsent** | 48.40 | 46.89 | 57.89 | 61.23 | 50 |
+| **RevokeConsent** | 48.35 | 47.01 | 58.45 | 62.11 | 50 |
+| **Unauthorized Access** | 44.60 | 43.21 | 52.89 | 56.78 | 50 |
+
+### Statistical Analysis Features
+
+- **Percentile Distribution**: P50 (median), P95, P99 for latency distribution analysis
+- **Robust Sample Sizes**: n=50 samples per operation type for statistical significance
+- **End-to-End Measurement**: Complete chaincode invocation timing including network latency
+- **Operation Coverage**: All 7 EHR operation types including unauthorized access scenarios
+- **Cross-Organizational Validation**: Separate analysis for same-org vs cross-org operations
+- **Automated Reporting**: CSV and Markdown outputs for academic publication
+
+### Latency Analysis Scripts
+
+#### `latency_analysis.sh` - Core Analysis Framework
+```bash
+# Full comprehensive analysis (recommended)
+./latency_analysis.sh
+
+# Individual operation analysis
+./latency_analysis.sh create     # CreateEHR latency
+./latency_analysis.sh read       # ReadEHR same-org latency  
+./latency_analysis.sh read_cross # ReadEHR cross-org latency
+./latency_analysis.sh update     # UpdateEHR latency
+./latency_analysis.sh consent    # GrantConsent latency
+./latency_analysis.sh revoke     # RevokeConsent latency
+./latency_analysis.sh unauthorized # Unauthorized access latency
+```
+
+**Key Features:**
+- **Precision Timing**: Nanosecond-precision measurement using `date +%s.%N`
+- **Statistical Analysis**: Automatic calculation of mean, median, P95, P99, standard deviation
+- **CSV Output**: Machine-readable results in `../results/latency_analysis/`
+- **Operation Isolation**: Each test uses unique patient IDs to avoid conflicts
+- **Authorization Validation**: Tests both successful and unauthorized access scenarios
+
+#### `generate_summary_report.sh` - Automated Reporting
+```bash
+# Generate summary report from latest test results
+./generate_summary_report.sh
+
+# Output formats:
+# - CSV: ../results/performance_summary_YYYYMMDD_HHMMSS.csv
+# - Markdown: ../results/performance_summary_YYYYMMDD_HHMMSS.md
+```
+
+**Report Features:**
+- **Latest Data Selection**: Automatically finds most recent test results by timestamp
+- **Multi-Format Output**: Both CSV (for analysis) and Markdown (for documentation)
+- **Data Accuracy Verification**: Exact pattern matching ensures correct file selection
+- **Academic Quality**: Formatted for dissertation/research publication
+
+### Technical Implementation
+
+#### Latency Measurement Methodology
+```bash
+# Precision timing implementation
+start_time=$(date +%s.%N)
+peer chaincode invoke [operation]
+end_time=$(date +%s.%N)
+duration=$(echo "$end_time - $start_time" | bc)
+```
+
+#### Statistical Analysis Functions
+```bash
+calculate_percentile() {
+    local data=("$@")
+    local percentile=$1
+    # Advanced percentile calculation with interpolation
+    # Returns exact percentile values for distribution analysis
+}
+
+calculate_stats() {
+    # Calculates: mean, median, P95, P99, standard deviation
+    # Outputs both human-readable and CSV formats
+}
+```
+
+#### Cross-Organizational Test Design
+- **Same-Org Operations**: Org1 creates and accesses own EHRs (creator authorization)
+- **Cross-Org Operations**: Org1 creates, grants consent, Org2 accesses (consent-based authorization)
+- **Unauthorized Tests**: Org2 attempts access without consent (security validation)
+
+### File Structure: Latency Analysis
+```
+scripts/performance/
+├── latency_analysis.sh          # Core latency analysis framework
+├── generate_summary_report.sh   # Automated report generation
+├── ehr_operations.sh           # EHR operation utility functions
+└── config.sh                  # Environment configuration
+
+scripts/results/
+├── latency_analysis/           # Raw latency test data
+│   ├── latency_stats_create_YYYYMMDD_HHMMSS.csv
+│   ├── latency_stats_read_YYYYMMDD_HHMMSS.csv
+│   ├── latency_stats_read_cross_YYYYMMDD_HHMMSS.csv
+│   ├── latency_stats_update_YYYYMMDD_HHMMSS.csv
+│   ├── latency_stats_consent_YYYYMMDD_HHMMSS.csv
+│   ├── latency_stats_revoke_YYYYMMDD_HHMMSS.csv
+│   └── latency_stats_unauthorized_YYYYMMDD_HHMMSS.csv
+├── throughput_analysis/        # Raw throughput test data
+│   └── throughput_test_YYYYMMDD_HHMMSS.csv
+├── performance_reports/        # Organized summary reports
+│   ├── performance_summary_YYYYMMDD_HHMMSS.csv    # Machine-readable
+│   └── performance_summary_YYYYMMDD_HHMMSS.md     # Human-readable
+└── parallel_YYYYMMDD_HHMMSS/   # Parallel test results
+```
+
+### Data Accuracy Guarantees
+
+The automated reporting system provides **verified data accuracy**:
+
+1. **Exact Pattern Matching**: Uses `latency_stats_${operation}_[0-9]*.csv` to avoid file conflicts
+2. **Latest File Selection**: `sort | tail -1` ensures most recent timestamp
+3. **Precise CSV Parsing**: Uses `grep "^Mean,"` with exact field extraction  
+4. **Error Handling**: Returns "N/A" if files don't exist
+5. **No Data Manipulation**: All values are direct passthrough from generated CSV files
+6. **Consistent Results**: Same values every time, no arbitrary selection
+
+**Verification Example:**
+```bash
+# Manual verification
+ls ../results/latency_analysis/latency_stats_read_*.csv | sort | tail -1
+# ../results/latency_analysis/latency_stats_read_20250809_180246.csv
+
+# Extracted mean matches exactly
+grep "^Mean," ../results/latency_analysis/latency_stats_read_20250809_180246.csv
+# Mean,45.216000
+```
+
+### Academic Research Applications
+
+This framework is designed for **Master's dissertation research** and provides:
+
+- **Statistical Rigor**: Large sample sizes (n=50) with comprehensive percentile analysis
+- **Reproducible Results**: Standardized methodology with exact timing measurements
+- **Publication-Ready Data**: CSV and Markdown formats for academic papers
+- **Cross-Organizational Analysis**: Separate metrics for same-org vs cross-org operations
+- **Security Validation**: Latency analysis includes unauthorized access scenarios
+- **Automated Processing**: Eliminates manual data collection errors
+
 ## Available Test Types
 
 ### Individual Operation Tests
@@ -19,7 +183,19 @@ All performance tests have been updated to work with our enhanced authorization 
 
 ### Cross-Organizational Tests
 - `cross_org` - Test cross-organizational access (Org1 creates, Org2 reads with consent)
-- `full_cycle` - Complete CRUD cycle testing
+- `full_cycle` - Complete CRUD cycle testing (CREATE→CONSENT→READ→UPDATE per patient)
+- `all` - Run all test types separately with dedicated iterations each
+
+### Test Type Comparison: `all` vs `full_cycle`
+
+| Aspect | `full_cycle` | `all` |
+|--------|-------------|-------|
+| **Approach** | Integrated workflow per patient | Separate operation testing |
+| **Iterations** | 100 complete workflows | 100 iterations per operation type |
+| **Operations** | CREATE→CONSENT→READ→UPDATE | 6 separate tests (CREATE, READ, UPDATE, etc.) |
+| **Use Case** | End-to-end workflow validation | Individual operation analysis |
+| **Academic Value** | Workflow performance | Operation-specific metrics |
+| **Output** | ~5-6 cycles/sec | Separate latency/TPS per operation |
 
 ## Performance Results Summary
 

@@ -55,5 +55,16 @@ connection-*.json
 connection-*.yaml
 local_*
 
-# Reports and performance outputs
-scripts/results/*
+# Reports and performance outputs - Keep final reports, ignore raw data
+scripts/results/latency_analysis/*.csv
+scripts/results/throughput_analysis/*.csv
+scripts/results/parallel_*/
+scripts/logs/
+
+# Ignore timestamped summary reports, keep only the final report
+scripts/results/performance_reports/performance_summary_*.csv
+scripts/results/performance_reports/performance_summary_*.md
+
+# Keep this final report for git tracking:
+# scripts/results/performance_reports/ehr_performance_analysis_final_report.md
+# scripts/results/performance_reports/ehr_performance_analysis_final_report.csv

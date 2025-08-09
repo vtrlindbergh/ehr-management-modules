@@ -18,7 +18,9 @@ setup_fabric_environment || exit 1
 # Test parameters
 ITERATIONS=${1:-$DEFAULT_TEST_ITERATIONS}
 TEST_TYPE=${2:-"create"}  # create, read, update, delete, consent, full_cycle, cross_org
-OUTPUT_FILE="${RESULTS_DIR}/throughput_test_$(date +%Y%m%d_%H%M%S).csv"
+THROUGHPUT_DIR="${RESULTS_DIR}/throughput_analysis"
+mkdir -p "$THROUGHPUT_DIR"
+OUTPUT_FILE="${THROUGHPUT_DIR}/throughput_test_$(date +%Y%m%d_%H%M%S).csv"
 
 # Function to display usage
 show_usage() {
@@ -36,6 +38,7 @@ show_usage() {
     echo "  consent     Test consent granting throughput"
     echo "  cross_org   Test cross-organizational access throughput"
     echo "  full_cycle  Test complete CRUD cycle"
+    echo "  all         Run all throughput tests sequentially"
     echo ""
     echo "Examples:"
     echo "  $0 50 create"
@@ -427,6 +430,49 @@ test_delete_throughput() {
     echo "SUMMARY,DELETE,${iterations},${successful_transactions},${total_duration},${tps}" >> "${OUTPUT_FILE}"
 }
 
+# Function to run all throughput tests
+test_all_throughput() {
+    local iterations=$1
+    print_info "Starting COMPREHENSIVE Throughput Analysis - All Operation Types"
+    print_info "Base iterations per operation: ${iterations}"
+    
+    # Run all operation types
+    local operations=("create" "read" "update" "consent" "cross_org" "full_cycle")
+    
+    for operation in "${operations[@]}"; do
+        print_info "Running ${operation} throughput test..."
+        
+        # Update output file for each operation
+        OUTPUT_FILE="${THROUGHPUT_DIR}/throughput_${operation}_$(date +%Y%m%d_%H%M%S).csv"
+        
+        case $operation in
+            "create")
+                test_create_throughput $iterations
+                ;;
+            "read")
+                test_read_throughput $iterations
+                ;;
+            "update")
+                test_update_throughput $iterations
+                ;;
+            "consent")
+                test_consent_throughput $iterations
+                ;;
+            "cross_org")
+                test_cross_org_throughput $iterations
+                ;;
+            "full_cycle")
+                test_full_cycle_throughput $iterations
+                ;;
+        esac
+        
+        print_info "Completed ${operation} analysis"
+        echo "---"
+    done
+    
+    print_success "COMPREHENSIVE Throughput Analysis completed for all operation types!"
+}
+
 # Main execution
 main() {
     print_info "=== EHR Management System Throughput Testing ==="
@@ -483,6 +529,9 @@ main() {
             ;;
         "full_cycle")
             test_full_cycle_throughput "$ITERATIONS"
+            ;;
+        "all")
+            test_all_throughput "$ITERATIONS"
             ;;
         *)
             print_error "Unknown test type: ${TEST_TYPE}"

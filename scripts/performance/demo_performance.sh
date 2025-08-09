@@ -70,4 +70,4 @@ print_info "Check the CSV files for detailed metrics and analysis"
 # Show results summary
 echo ""
 print_info "Recent test results:"
-ls -la ../results/throughput_test_*.csv | tail -5
+ls -la ../results/throughput_analysis/throughput_test_*.csv | tail -5
