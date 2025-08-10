@@ -342,7 +342,7 @@ analyze_consent_latency() {
             
             local start_timestamp=$(date +%s.%N)
             local latency
-            latency=$(grant_consent "${patient_id}" "[\"Org2MSP\"]")
+            latency=$(grant_consent "${patient_id}" "[\"org2admin\"]")
             local exit_status=$?
         else
             local operation="REVOKE"
@@ -396,7 +396,7 @@ analyze_read_cross_latency() {
     for i in $(seq 1 5); do
         local patient_id="${TEST_PATIENT_ID_PREFIX}_XRD_$(printf "%06d" $i)"
         create_ehr "${patient_id}" "Cross-Org Read Test Patient ${i}" > /dev/null 2>&1
-        grant_consent "${patient_id}" "[\"Org2MSP\"]" > /dev/null 2>&1
+        grant_consent "${patient_id}" "[\"org2admin\"]" > /dev/null 2>&1
         test_patients+=("$patient_id")
     done
     

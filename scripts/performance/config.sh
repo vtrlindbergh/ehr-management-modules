@@ -6,14 +6,20 @@
 # =============================================================================
 
 # Network Configuration
-export TEST_NETWORK_PATH="../../../test-network"
+export TEST_NETWORK_PATH="/home/vitor/dev/fabric-samples/test-network"
+export FABRIC_CFG_PATH="/home/vitor/dev/fabric-samples/config"
 export CHANNEL_NAME="mychannel"
 export CHAINCODE_NAME="ehrCC"
 export ORDERER_ENDPOINT="localhost:7050"
+export ORDERER_CA="${TEST_NETWORK_PATH}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
 
 # Peer Configuration
 export PEER0_ORG1_ENDPOINT="localhost:7051"
 export PEER0_ORG2_ENDPOINT="localhost:9051"
+
+# TLS Certificate paths
+export PEER0_ORG1_TLS_ROOTCERT="${TEST_NETWORK_PATH}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+export PEER0_ORG2_TLS_ROOTCERT="${TEST_NETWORK_PATH}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
 
 # Test Configuration
 export DEFAULT_TEST_ITERATIONS=100
@@ -46,6 +52,12 @@ print_warning() {
 
 print_error() {
     echo -e "${COLOR_RED}[ERROR]${COLOR_NC} $1"
+}
+
+print_header() {
+    echo -e "\n${COLOR_BLUE}=====================================${COLOR_NC}"
+    echo -e "${COLOR_BLUE}$1${COLOR_NC}"
+    echo -e "${COLOR_BLUE}=====================================${COLOR_NC}\n"
 }
 
 # Function to check if test network is running

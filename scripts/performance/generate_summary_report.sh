@@ -20,6 +20,7 @@ SUMMARY_REPORT="${SUMMARY_DIR}/performance_summary_${TIMESTAMP}.md"
 CSV_REPORT="${SUMMARY_DIR}/performance_summary_${TIMESTAMP}.csv"
 LATENCY_DIR="${RESULTS_DIR}/latency_analysis"
 THROUGHPUT_DIR="${RESULTS_DIR}/throughput_analysis"
+PARALLEL_DIR="${RESULTS_DIR}/parallel_analysis"
 
 # Create summary reports directory if it doesn't exist
 mkdir -p "$SUMMARY_DIR"
@@ -33,6 +34,7 @@ show_usage() {
     echo "Options:"
     echo "  -l, --latency-only    Generate only latency summary"
     echo "  -t, --throughput-only Generate only throughput summary"
+    echo "  -p, --parallel-only   Generate only parallel summary"
     echo "  -f, --format FORMAT   Output format: md, csv, both (default: both)"
     echo "  -o, --output DIR      Output directory (default: ../results)"
     echo "  -h, --help           Show this help message"
@@ -238,6 +240,109 @@ EOF
     fi
 }
 
+# Function to extract parallel analysis data
+extract_parallel_stats() {
+    local worker_count="$1"
+    
+    # Find latest parallel test results for specific worker count
+    local parallel_files=($(find "${PARALLEL_DIR}" -name "*summary*.csv" -type f | sort | tail -10))
+    
+    if [ ${#parallel_files[@]} -eq 0 ]; then
+        echo "N/A,N/A,N/A,N/A,N/A"
+        return
+    fi
+    
+    local total_tps=""
+    local success_rate=""
+    local total_transactions=""
+    local test_type=""
+    
+    # Find most recent test for this worker count
+    for file in "${parallel_files[@]}"; do
+        if [ -f "$file" ]; then
+            # Check if this file is for the requested worker count
+            local file_workers=$(grep "# System:" "$file" | grep -o '[0-9]\+ workers' | grep -o '[0-9]\+')
+            
+            if [ "$file_workers" = "$worker_count" ]; then
+                # Extract metrics from summary line
+                local summary_line=$(grep "^SUMMARY" "$file" | head -1)
+                if [ -n "$summary_line" ]; then
+                    test_type=$(echo "$summary_line" | cut -d',' -f2)
+                    total_transactions=$(echo "$summary_line" | cut -d',' -f4)
+                    success_rate=$(echo "$summary_line" | cut -d',' -f6)
+                    total_tps=$(echo "$summary_line" | cut -d',' -f7)
+                    break
+                fi
+            fi
+        fi
+    done
+    
+    # Calculate TPS per worker
+    local tps_per_worker=""
+    if [ -n "$total_tps" ] && [ -n "$worker_count" ] && [ "$worker_count" -gt 0 ]; then
+        tps_per_worker=$(echo "scale=2; $total_tps / $worker_count" | bc -l)
+    fi
+    
+    echo "${test_type:-N/A},${total_transactions:-N/A},${success_rate:-N/A},${total_tps:-N/A},${tps_per_worker:-N/A}"
+}
+
+# Function to generate parallel analysis summary table
+generate_parallel_summary() {
+    local format="$1"
+    
+    print_info "Generating parallel analysis summary..."
+    
+    # Worker counts to analyze
+    local worker_counts=(1 2 4 8 12 16)
+    
+    if [ "$format" = "md" ] || [ "$format" = "both" ]; then
+        cat >> "$SUMMARY_REPORT" << 'EOF'
+
+## Parallel Analysis Results
+
+### Scaling Performance Analysis
+
+| Workers | Test Type | Transactions | Success Rate | Total TPS | TPS/Worker |
+|---------|-----------|--------------|--------------|-----------|------------|
+EOF
+        
+        for workers in "${worker_counts[@]}"; do
+            local stats=$(extract_parallel_stats "$workers")
+            IFS=',' read -r test_type transactions success_rate total_tps tps_per_worker <<< "$stats"
+            
+            printf "| %-7s | %-9s | %-12s | %-12s | %-9s | %-10s |\n" \
+                "$workers" \
+                "$test_type" \
+                "$transactions" \
+                "$success_rate%" \
+                "$total_tps" \
+                "$tps_per_worker" >> "$SUMMARY_REPORT"
+        done
+        
+        cat >> "$SUMMARY_REPORT" << 'EOF'
+
+### Parallel Testing Metrics
+- **System Cores**: 8
+- **Maximum Workers Tested**: 16
+- **Scaling Efficiency**: Measured by TPS per worker consistency
+- **Resource Utilization**: Workers/Core ratio analysis
+
+EOF
+    fi
+    
+    if [ "$format" = "csv" ] || [ "$format" = "both" ]; then
+        # Add CSV header for parallel analysis
+        echo "" >> "$CSV_REPORT"
+        echo "# Parallel Analysis Results" >> "$CSV_REPORT"
+        echo "Workers,Test_Type,Transactions,Success_Rate,Total_TPS,TPS_Per_Worker" >> "$CSV_REPORT"
+        
+        for workers in "${worker_counts[@]}"; do
+            local stats=$(extract_parallel_stats "$workers")
+            echo "${workers},${stats}" >> "$CSV_REPORT"
+        done
+    fi
+}
+
 # Function to generate complete summary report
 generate_complete_report() {
     local format="$1"
@@ -257,6 +362,7 @@ EOF
     
     generate_latency_summary "$format"
     generate_throughput_summary "$format"
+    generate_parallel_summary "$format"
     
     if [ "$format" = "md" ] || [ "$format" = "both" ]; then
         cat >> "$SUMMARY_REPORT" << 'EOF'
@@ -300,6 +406,10 @@ main() {
                 throughput_only=true
                 shift
                 ;;
+            -p|--parallel-only)
+                parallel_only=true
+                shift
+                ;;
             -f|--format)
                 format="$2"
                 shift 2
@@ -341,6 +451,8 @@ main() {
         generate_latency_summary "$format"
     elif [ "$throughput_only" = true ]; then
         generate_throughput_summary "$format"
+    elif [ "$parallel_only" = true ]; then
+        generate_parallel_summary "$format"
     else
         generate_complete_report "$format"
     fi

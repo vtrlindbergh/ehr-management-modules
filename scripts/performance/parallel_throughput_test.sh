@@ -14,7 +14,7 @@ source "${SCRIPT_DIR}/ehr_operations.sh"
 
 # Initialize Fabric environment
 print_info "Setting up Fabric environment for parallel testing..."
-setup_fabric_environment || exit 1
+setup_org1_env
 
 # Test parameters
 TOTAL_ITERATIONS=${1:-200}  # Total iterations across all parallel processes
@@ -68,7 +68,7 @@ setup_shared_test_data() {
         
         if [ $create_result -eq 0 ]; then
             # Grant consent to Org2 for cross-org access
-            grant_consent "${patient_id}" "[\"Org2MSP\"]" > /dev/null 2>&1
+            grant_consent "${patient_id}" "[\"org2admin\"]" > /dev/null 2>&1
             local consent_result=$?
             
             if [ $consent_result -ne 0 ]; then
@@ -99,8 +99,16 @@ run_parallel_worker() {
     
     for i in $(seq 1 $iterations_per_worker); do
         local global_transaction_id=$(( (worker_id - 1) * iterations_per_worker + i ))
-        local patient_index=$(( (global_transaction_id - 1) % shared_patients + 1 ))
-        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $patient_index)"
+        
+        # Generate patient ID based on test type
+        local patient_id
+        if [ "$shared_patients" -gt 0 ]; then
+            local patient_index=$(( (global_transaction_id - 1) % shared_patients + 1 ))
+            patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $patient_index)"
+        else
+            # For create tests, use unique patient IDs
+            patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $global_transaction_id)"
+        fi
         
         local transaction_start=$(date +%s.%N)
         local duration
@@ -130,7 +138,7 @@ run_parallel_worker() {
                 ;;
             "consent")
                 setup_org1_env > /dev/null 2>&1
-                duration=$(grant_consent "${patient_id}" "[\"Org2MSP\"]" 2>/dev/null)
+                duration=$(grant_consent "${patient_id}" "[\"org2admin\"]" 2>/dev/null)
                 exit_status=$?
                 ;;
             *)
@@ -276,10 +284,7 @@ main() {
     
     # Setup environment
     mkdir -p "${OUTPUT_DIR}"
-    if ! setup_fabric_environment; then
-        print_error "Failed to setup Fabric environment"
-        exit 1
-    fi
+    setup_org1_env
     
     if ! check_network_status; then
         print_error "Network status check failed"

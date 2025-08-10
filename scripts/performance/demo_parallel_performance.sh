@@ -20,31 +20,32 @@ print_info "Optimized for Multi-Core Systems (8-core recommended)"
 echo ""
 
 # Demo 1: Baseline parallel test
-print_info "Demo 1: Baseline Parallel Test (40 total iterations, 4 workers)"
+print_info "Demo 1: Baseline Parallel Test (100 total iterations, 4 workers)"
 echo "This establishes baseline parallel performance."
 echo ""
 
 print_info "Running PARALLEL CROSS-ORG test (4 workers)..."
-./parallel_throughput_test.sh 40 4 cross_org
+./parallel_test.sh 100 4 cross_org
 echo ""
 
-# Demo 2: Full 8-core test
-print_info "Demo 2: Full 8-Core Test (80 total iterations, 8 workers)"
+# Demo 2: Full 8-core test  
+print_info "Demo 2: Full 8-Core Test (200 total iterations, 8 workers)"
 echo "This demonstrates maximum parallel throughput on 8-core systems."
 echo ""
 
 print_info "Running PARALLEL CROSS-ORG test (8 workers)..."
-./parallel_throughput_test.sh 80 8 cross_org
+./parallel_test.sh 200 8 cross_org
 echo ""
 
 print_success "=== Parallel Performance Demo Complete! ==="
 print_info "Results demonstrate scaling from 4 to 8 workers"
-print_info "Check ../results/parallel_* directories for detailed metrics"
+print_info "Check ../results/parallel_analysis/ directories for detailed metrics"
 
 # Show recent results comparison
 echo ""
 print_info "Performance Summary:"
-echo "- 4 workers: ~55 TPS (efficient scaling)"  
-echo "- 8 workers: ~68 TPS (maximum throughput)"
+echo "- 4 workers: 25 iterations each (academic standard)"  
+echo "- 8 workers: 25 iterations each (academic standard)"
 echo "- Validates cross-org authorization under parallel load"
 echo "- Simulates multiple hospitals accessing data simultaneously"
+echo "- Results saved in organized parallel_analysis structure"
