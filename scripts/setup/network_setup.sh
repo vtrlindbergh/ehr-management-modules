@@ -12,7 +12,7 @@ if [ -f "${SCRIPT_DIR}/../performance/config.sh" ]; then
     source "${SCRIPT_DIR}/../performance/config.sh"
 else
     # Basic configuration if config.sh not available
-    export TEST_NETWORK_PATH="../../../test-network"
+    export TEST_NETWORK_PATH="/home/vitor/dev/fabric-samples/test-network"
     export CHAINCODE_NAME="ehrCC"
     export CHAINCODE_PATH="../ehr-management-modules"
     export CHAINCODE_LANGUAGE="go"

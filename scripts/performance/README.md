@@ -224,16 +224,16 @@ Recent test results with enhanced authorization:
 | **8 parallel workers** | 68.40 TPS | **3.6x improvement** | 8 |
 
 ### Parallel Test Types
-- `parallel_throughput_test.sh` - Multi-worker parallel testing
+- `parallel_test.sh` - Multi-worker parallel testing (final version)
 - `demo_parallel_performance.sh` - Comprehensive parallel testing demo
 
 ### Usage Examples
 ```bash
 # 8-core stress test with cross-org operations
-./parallel_throughput_test.sh 400 8 cross_org
+./parallel_test.sh 400 8 cross_org
 
 # 4-worker parallel test
-./parallel_throughput_test.sh 200 4 cross_org
+./parallel_test.sh 200 4 cross_org
 
 # Run comprehensive parallel demo
 ./demo_parallel_performance.sh

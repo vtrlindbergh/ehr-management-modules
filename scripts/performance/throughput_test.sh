@@ -13,7 +13,7 @@ source "${SCRIPT_DIR}/ehr_operations.sh"
 
 # Initialize Fabric environment
 print_info "Setting up Fabric environment..."
-setup_org1_env
+setup_fabric_environment || exit 1
 
 # Test parameters
 ITERATIONS=${1:-$DEFAULT_TEST_ITERATIONS}

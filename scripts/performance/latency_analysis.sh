@@ -125,6 +125,10 @@ analyze_create_latency() {
     print_info "Iterations: ${iterations}"
     print_info "Output: ${LATENCY_RAW_FILE}"
     
+    # Generate unique patient ID prefix based on timestamp to avoid conflicts
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local unique_prefix="LAT_CREATE_${timestamp}_P"
+    
     # Initialize CSV header
     echo "Transaction_ID,Patient_ID,Start_Time,End_Time,Latency_Seconds,Status" > "${LATENCY_RAW_FILE}"
     
@@ -135,7 +139,7 @@ analyze_create_latency() {
     declare -a latencies=()
     
     for i in $(seq 1 $iterations); do
-        local patient_id="${TEST_PATIENT_ID_PREFIX}_LAT_$(printf "%06d" $i)"
+        local patient_id="${unique_prefix}$(printf "%06d" $i)"
         local patient_name="Latency Test Patient ${i}"
         
         print_info "Creating EHR ${i}/${iterations} for patient ${patient_id}"
@@ -186,11 +190,15 @@ analyze_read_latency() {
     print_info "Starting READ Latency Analysis (Same-Org)"
     print_info "Iterations: ${iterations}"
     
-    # First, create test data with consistent naming
+    # Generate unique patient ID prefix based on timestamp to avoid conflicts
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local unique_prefix="LAT_READ_${timestamp}_P"
+    
+    # First, create test data with unique naming
     print_info "Setting up test data (10 patients)..."
     local test_patients=()
     for i in $(seq 1 10); do
-        local patient_id="${TEST_PATIENT_ID_PREFIX}_READ_$(printf "%06d" $i)"
+        local patient_id="${unique_prefix}$(printf "%06d" $i)"
         print_info "Creating test patient: ${patient_id}"
         create_ehr "${patient_id}" "Read Test Patient ${i}" > /dev/null 2>&1
         test_patients+=("$patient_id")
@@ -212,9 +220,13 @@ analyze_read_latency() {
         
         local start_timestamp=$(date +%s.%N)
         
-        # Use the same read_ehr function that we know works
+        # Use data verification for first 2 reads to prove actual data retrieval
         local latency
-        latency=$(read_ehr "${patient_id}")
+        if [ $i -le 2 ]; then
+            latency=$(read_ehr "${patient_id}" "true")
+        else
+            latency=$(read_ehr "${patient_id}")
+        fi
         local exit_status=$?
         
         # Record result
@@ -249,11 +261,15 @@ analyze_update_latency() {
     print_info "Starting UPDATE Latency Analysis"
     print_info "Iterations: ${iterations}"
     
-    # Create initial test data
+    # Generate unique patient ID prefix based on timestamp to avoid conflicts
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local unique_prefix="LAT_UPD_${timestamp}_P"
+    
+    # Create initial test data with unique naming
     print_info "Setting up test data for updates..."
     local test_patients=()
     for i in $(seq 1 10); do
-        local patient_id="${TEST_PATIENT_ID_PREFIX}_UPD_$(printf "%06d" $i)"
+        local patient_id="${unique_prefix}$(printf "%06d" $i)"
         create_ehr "${patient_id}" "Update Test Patient ${i}" > /dev/null 2>&1
         test_patients+=("$patient_id")
     done
@@ -314,11 +330,15 @@ analyze_consent_latency() {
     print_info "Starting CONSENT Latency Analysis (Grant/Revoke)"
     print_info "Iterations: ${iterations}"
     
-    # Create test data
+    # Generate unique patient ID prefix based on timestamp to avoid conflicts
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local unique_prefix="LAT_CNS_${timestamp}_P"
+    
+    # Create test data with unique naming
     print_info "Setting up test data for consent operations..."
     local test_patients=()
     for i in $(seq 1 5); do
-        local patient_id="${TEST_PATIENT_ID_PREFIX}_CNS_$(printf "%06d" $i)"
+        local patient_id="${unique_prefix}$(printf "%06d" $i)"
         create_ehr "${patient_id}" "Consent Test Patient ${i}" > /dev/null 2>&1
         test_patients+=("$patient_id")
     done
@@ -390,11 +410,15 @@ analyze_read_cross_latency() {
     print_info "Starting READ Latency Analysis (Cross-Org with Consent)"
     print_info "Iterations: ${iterations}"
     
-    # Create test data and grant consent (as Org1)
+    # Generate unique patient ID prefix based on timestamp to avoid conflicts
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local unique_prefix="LAT_XRD_${timestamp}_P"
+    
+    # Create test data and grant consent (as Org1) with unique naming
     print_info "Setting up test data with cross-org consent..."
     local test_patients=()
     for i in $(seq 1 5); do
-        local patient_id="${TEST_PATIENT_ID_PREFIX}_XRD_$(printf "%06d" $i)"
+        local patient_id="${unique_prefix}$(printf "%06d" $i)"
         create_ehr "${patient_id}" "Cross-Org Read Test Patient ${i}" > /dev/null 2>&1
         grant_consent "${patient_id}" "[\"org2admin\"]" > /dev/null 2>&1
         test_patients+=("$patient_id")
@@ -419,9 +443,13 @@ analyze_read_cross_latency() {
         
         local start_timestamp=$(date +%s.%N)
         
-        # Perform cross-org read
+        # Use data verification for first 2 cross-org reads to prove actual data retrieval
         local latency
-        latency=$(read_ehr "${patient_id}")
+        if [ $i -le 2 ]; then
+            latency=$(read_ehr "${patient_id}" "true")  # Enable data verification
+        else
+            latency=$(read_ehr "${patient_id}")
+        fi
         local exit_status=$?
         
         local end_timestamp
@@ -461,11 +489,15 @@ analyze_unauthorized_latency() {
     print_info "Starting UNAUTHORIZED READ Latency Analysis (Expected Failures)"
     print_info "Iterations: ${iterations}"
     
-    # Create test data WITHOUT granting cross-org consent (as Org1)
+    # Generate unique patient ID prefix based on timestamp to avoid conflicts
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local unique_prefix="LAT_UNA_${timestamp}_P"
+    
+    # Create test data WITHOUT granting cross-org consent (as Org1) with unique naming
     print_info "Setting up test data without cross-org consent..."
     local test_patients=()
     for i in $(seq 1 5); do
-        local patient_id="${TEST_PATIENT_ID_PREFIX}_UNA_$(printf "%06d" $i)"
+        local patient_id="${unique_prefix}$(printf "%06d" $i)"
         create_ehr "${patient_id}" "Unauthorized Test Patient ${i}" > /dev/null 2>&1
         # Deliberately NOT granting consent for cross-org access
         test_patients+=("$patient_id")
@@ -531,9 +563,12 @@ analyze_unauthorized_latency() {
 # Function to run all operation types
 analyze_all_operations() {
     local iterations=$1
-    local base_iterations=$((iterations / 6))  # Divide among 6 operation types
+    
+    # Use the full iteration count for each operation type (not divided)
+    local base_iterations=$iterations
     
     print_info "Starting COMPREHENSIVE Latency Analysis - All Operation Types"
+    print_info "Total iterations requested: ${iterations}"
     print_info "Base iterations per operation: ${base_iterations}"
     
     # Run all operation types
@@ -590,19 +625,47 @@ calculate_latency_statistics() {
     IFS=$'\n' sorted=($(sort -n <<<"${latencies[*]}"))
     unset IFS
     
-    # Calculate percentiles
-    local p50_index=$(echo "scale=0; ($count * 50) / 100" | bc)
-    local p95_index=$(echo "scale=0; ($count * 95) / 100" | bc)
-    local p99_index=$(echo "scale=0; ($count * 99) / 100" | bc)
+    # Calculate percentiles with proper handling for small samples
+    local p50_index p95_index p99_index
     
-    # Adjust indices (arrays are 0-based)
-    p50_index=$((p50_index > 0 ? p50_index - 1 : 0))
-    p95_index=$((p95_index > 0 ? p95_index - 1 : 0))
-    p99_index=$((p99_index > 0 ? p99_index - 1 : 0))
+    # For P50 (median)
+    if [ $count -eq 1 ]; then
+        p50_index=0
+    elif [ $count -eq 2 ]; then
+        # For 2 elements, median is the average (we'll handle this specially)
+        p50_index=0  # Will be calculated as average below
+    else
+        p50_index=$(echo "scale=0; ($count * 50) / 100" | bc)
+        p50_index=$((p50_index > 0 ? p50_index - 1 : 0))
+    fi
     
-    local p50=${sorted[$p50_index]}
+    # For P95
+    if [ $count -le 2 ]; then
+        p95_index=$((count - 1))  # Use the maximum value
+    else
+        p95_index=$(echo "scale=0; ($count * 95) / 100" | bc)
+        p95_index=$((p95_index > 0 ? p95_index - 1 : 0))
+    fi
+    
+    # For P99
+    if [ $count -le 2 ]; then
+        p99_index=$((count - 1))  # Use the maximum value
+    else
+        p99_index=$(echo "scale=0; ($count * 99) / 100" | bc)
+        p99_index=$((p99_index > 0 ? p99_index - 1 : 0))
+    fi
+    
+    # Calculate percentile values
     local p95=${sorted[$p95_index]}
     local p99=${sorted[$p99_index]}
+    
+    # Special handling for P50 when count=2 (median is average of two values)
+    local p50
+    if [ $count -eq 2 ]; then
+        p50=$(echo "scale=9; (${sorted[0]} + ${sorted[1]}) / 2" | bc)
+    else
+        p50=${sorted[$p50_index]}
+    fi
     local min=${sorted[0]}
     local max=${sorted[$((count-1))]}
     
