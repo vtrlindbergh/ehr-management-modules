@@ -1,6 +1,6 @@
 # EHR Blockchain Performance Analysis Summary
 **Academic Research - Master's Dissertation**  
-**Generated:** dom 10 ago 2025 23:51:19 -03  
+**Generated:** seg 11 ago 2025 09:21:55 -03  
 **System:** Hyperledger Fabric v2.5.10  
 **Network:** 2 Organizations, TLS Enabled  
 **Report Version:** Enhanced Automated Management
@@ -52,11 +52,11 @@ This comprehensive performance analysis provides empirical evaluation of Hyperle
 
 | Operation Type | Tests | Avg TPS | Min TPS | Max TPS | Range TPS |
 |---|---|---|---|---|---|
-| **CreateEHR** | 3 | 10.15 | 8.24 | 12.48 | 8.24-12.48 |
-| **ReadEHR** | 1 | 8.80 | 8.80 | 8.80 | 8.80-8.80 |
-| **UpdateEHR** | 1 | 10.91 | 10.91 | 10.91 | 10.91-10.91 |
-| **Consent** | 1 | 11.89 | 11.89 | 11.89 | 11.89-11.89 |
-| **Cross-Org** | 2 | 10.45 | 9.74 | 11.17 | 9.74-11.17 |
+| **CreateEHR** | 1 | 11.00 | 11.00 | 11.00 | 11.00-11.00 |
+| **ReadEHR** | 1 | 13.28 | 13.28 | 13.28 | 13.28-13.28 |
+| **UpdateEHR** | 1 | 10.61 | 10.61 | 10.61 | 10.61-10.61 |
+| **Consent** | 1 | 10.54 | 10.54 | 10.54 | 10.54-10.54 |
+| **Cross-Org** | 1 | 12.91 | 12.91 | 12.91 | 12.91-12.91 |
 
 ### Key Insights:
 - Consistent throughput performance across all operation types
@@ -121,10 +121,10 @@ This comprehensive performance analysis provides empirical evaluation of Hyperle
 ## 📋 Test Execution Metadata
 
 **Generation Details:**
-- **Report Generated:** 2025-08-10 23:51:19 -03
+- **Report Generated:** 2025-08-11 09:21:55 -03
 - **Script Version:** Enhanced Automated Management
 - **Data Sources:** Latest available test results as of generation time
-- **Processing Time:** 1754880679 seconds since epoch
+- **Processing Time:** 1754914915 seconds since epoch
 
 **System Configuration:**
 - **Platform:** Linux 6.8.0-65-generic

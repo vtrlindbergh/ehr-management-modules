@@ -1,5 +1,5 @@
 # EHR Blockchain Performance Analysis - Academic Research Dataset
-# Generated: 2025-08-10 23:51:19 -03
+# Generated: 2025-08-11 09:21:55 -03
 # Report Version: Enhanced Automated Management
 # System: Hyperledger Fabric v2.5.10, 2 Organizations, TLS Enabled
 # 
@@ -33,11 +33,11 @@ Consent (Grant/Revoke),500,83.312000,12.409000,84.771713000,101.710656000,108.06
 Unauthorized Read,500,67.434000,5.385000,67.031658000,73.024885000,85.063823000,54.890093000-132.361039000
 
 Operation_Type,Test_Count,Avg_TPS,Min_TPS,Max_TPS,Range_TPS
-CreateEHR,3,10.15,8.24,12.48,8.24-12.48
-ReadEHR,1,8.80,8.80,8.80,8.80-8.80
-UpdateEHR,1,10.91,10.91,10.91,10.91-10.91
-Consent,1,11.89,11.89,11.89,11.89-11.89
-Cross-Org,2,10.45,9.74,11.17,9.74-11.17
+CreateEHR,1,11.00,11.00,11.00,11.00-11.00
+ReadEHR,1,13.28,13.28,13.28,13.28-13.28
+UpdateEHR,1,10.61,10.61,10.61,10.61-10.61
+Consent,1,10.54,10.54,10.54,10.54-10.54
+Cross-Org,1,12.91,12.91,12.91,12.91-12.91
 
 Workers,Test_Type,Total_Transactions,Success_Rate,Total_TPS,TPS_Per_Worker,Scaling_Efficiency_Percent,Test_Duration_Seconds
 1,CROSS_ORG,100,100.00,15.82,15.82,100.0,6.317887339

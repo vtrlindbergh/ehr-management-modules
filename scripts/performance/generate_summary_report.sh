@@ -88,7 +88,25 @@ find_latest_latency_stats() {
 # Function to extract throughput data from CSV files
 extract_throughput_stats() {
     local operation="$1"
-    local throughput_files=($(find "${THROUGHPUT_DIR}" -name "throughput_test_*.csv" -type f | sort | tail -10))
+    
+    # Map uppercase operation names to lowercase file patterns
+    local operation_lowercase
+    case "$operation" in
+        "CREATE") operation_lowercase="create" ;;
+        "READ") operation_lowercase="read" ;;
+        "UPDATE") operation_lowercase="update" ;;
+        "CONSENT") operation_lowercase="consent" ;;
+        "CROSS_ORG") operation_lowercase="cross_org" ;;
+        *) operation_lowercase=$(echo "$operation" | tr '[:upper:]' '[:lower:]') ;;
+    esac
+    
+    # Look for operation-specific files first, then fall back to throughput_test files
+    local throughput_files=($(find "${THROUGHPUT_DIR}" -name "throughput_${operation_lowercase}_*.csv" -type f | sort | tail -1))
+    
+    # Fallback to throughput_test files if no operation-specific files found
+    if [ ${#throughput_files[@]} -eq 0 ]; then
+        throughput_files=($(find "${THROUGHPUT_DIR}" -name "throughput_test_*.csv" -type f | sort | tail -1))
+    fi
     
     if [ ${#throughput_files[@]} -eq 0 ]; then
         echo "N/A,N/A,N/A,N/A,N/A"
