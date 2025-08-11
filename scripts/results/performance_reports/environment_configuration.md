@@ -1,6 +1,6 @@
 # Environment Configuration Documentation
 **Academic Research - Master's Dissertation**  
-**Generated:** 2025-08-11 09:21:55 -03
+**Generated:** 2025-08-11 10:26:44 -03
 
 ## 🖥️ System Environment
 
@@ -13,8 +13,8 @@
 **Hardware Configuration:**
 - CPU Cores: 8
 - Total Memory: 15Gi
-- Available Memory: 10Gi
-- System Load:  0,28, 0,46, 0,47
+- Available Memory: 8,5Gi
+- System Load:  1,04, 1,00, 1,10
 
 **User Environment:**
 - User: vitor
