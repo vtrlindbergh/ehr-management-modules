@@ -11,9 +11,60 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/config.sh"
 source "${SCRIPT_DIR}/ehr_operations.sh"
 
+# Check for help flag first (before environment setup)
+if [[ "$1" == "--help" || "$1" == "-h" || "$1" == "help" ]]; then
+    # System optimization parameters for help display
+    MAX_RECOMMENDED_WORKERS=16
+    SYSTEM_CORES=$(nproc)
+    
+    # Function to display usage
+    show_usage() {
+        echo "Parallel Throughput Testing - Final Production Version"
+        echo "====================================================="
+        echo "Usage: $0 [total_iterations] [parallel_processes] [test_type]"
+        echo ""
+        echo "Parameters:"
+        echo "  total_iterations    Total iterations across all processes (default: 400)"
+        echo "  parallel_processes  Number of concurrent workers (1-16, default: 8)"
+        echo "  test_type          Type of test operation (default: cross_org)"
+        echo ""
+        echo "Test Types:"
+        echo "  cross_org   Cross-organizational access (blockchain stress testing)"
+        echo "  create      EHR creation throughput"
+        echo "  read        EHR read throughput" 
+        echo "  consent     Consent granting throughput"
+        echo "  all         Run all test types in sequence"
+        echo ""
+        echo "System Information:"
+        echo "  System Cores: ${SYSTEM_CORES}"
+        echo "  Supported Workers: 1-${MAX_RECOMMENDED_WORKERS}"
+        echo "  Recommended: ${SYSTEM_CORES} workers (1 per core)"
+        echo "  Stress Test: ${MAX_RECOMMENDED_WORKERS} workers (2 per core)"
+        echo ""
+        echo "Academic Standards:"
+        echo "  - Maintains 25+ iterations per worker for statistical significance"
+        echo "  - Supports scaling analysis from 1-16 workers"
+        echo "  - Optimized for blockchain I/O latency patterns"
+        echo ""
+        echo "Examples:"
+        echo "  $0 800 16 cross_org    # Maximum stress test (16 workers)"
+        echo "  $0 400 8 all          # Comprehensive test suite (8 workers)"
+        echo "  $0 200 4 cross_org    # Conservative load test (4 workers)"
+    }
+    
+    show_usage
+    exit 0
+fi
+
 # Initialize Fabric environment
 print_info "Setting up Fabric environment for parallel testing..."
 setup_fabric_environment || exit 1
+
+# Check for help flag first
+if [[ "$1" == "--help" || "$1" == "-h" || "$1" == "help" ]]; then
+    show_usage
+    exit 0
+fi
 
 # Test parameters with intelligent defaults
 TOTAL_ITERATIONS=${1:-400}  # Total iterations across all processes
@@ -26,41 +77,6 @@ SUMMARY_FILE="${OUTPUT_DIR}/parallel_summary_${TIMESTAMP}.csv"
 # System optimization parameters
 MAX_RECOMMENDED_WORKERS=16  # Maximum supported for comprehensive scaling
 SYSTEM_CORES=$(nproc)
-
-# Function to display usage
-show_usage() {
-    echo "Parallel Throughput Testing - Final Production Version"
-    echo "====================================================="
-    echo "Usage: $0 [total_iterations] [parallel_processes] [test_type]"
-    echo ""
-    echo "Parameters:"
-    echo "  total_iterations    Total iterations across all processes (default: 400)"
-    echo "  parallel_processes  Number of concurrent workers (1-16, default: 8)"
-    echo "  test_type          Type of test operation (default: cross_org)"
-    echo ""
-    echo "Test Types:"
-    echo "  cross_org   Cross-organizational access (blockchain stress testing)"
-    echo "  create      EHR creation throughput"
-    echo "  read        EHR read throughput" 
-    echo "  consent     Consent granting throughput"
-    echo "  all         Run all test types in sequence"
-    echo ""
-    echo "System Information:"
-    echo "  System Cores: ${SYSTEM_CORES}"
-    echo "  Supported Workers: 1-${MAX_RECOMMENDED_WORKERS}"
-    echo "  Recommended: ${SYSTEM_CORES} workers (1 per core)"
-    echo "  Stress Test: ${MAX_RECOMMENDED_WORKERS} workers (2 per core)"
-    echo ""
-    echo "Academic Standards:"
-    echo "  - Maintains 25+ iterations per worker for statistical significance"
-    echo "  - Supports scaling analysis from 1-16 workers"
-    echo "  - Optimized for blockchain I/O latency patterns"
-    echo ""
-    echo "Examples:"
-    echo "  $0 800 16 cross_org    # Maximum stress test (16 workers)"
-    echo "  $0 400 8 all          # Comprehensive test suite (8 workers)"
-    echo "  $0 200 4 cross_org    # Conservative load test (4 workers)"
-}
 
 # Parameter validation with academic rigor
 validate_parameters() {
@@ -154,13 +170,32 @@ EOF
     local failed_transactions=0
     local worker_start_time=$(date +%s.%N)
     
-    # Patient management for conflict avoidance
-    local shared_patients=1000  # Large pool for 16 workers
+    # Each worker creates its own data pool in parallel
+    local worker_patients=10  # Each worker gets 10 test patients
+    local worker_patient_ids=()
+    
+    if [[ "$test_type" == "cross_org" || "$test_type" == "read" ]]; then
+        setup_org1_env > /dev/null 2>&1
+        for j in $(seq 1 $worker_patients); do
+            local patient_id="${TEST_PATIENT_ID_PREFIX}W${worker_id}_$(printf "%06d" $j)"
+            create_ehr "${patient_id}" "Worker ${worker_id} Patient ${j}" > /dev/null 2>&1
+            if [ "$test_type" == "cross_org" ]; then
+                grant_consent "${patient_id}" "[\"org2admin\"]" > /dev/null 2>&1
+            fi
+            worker_patient_ids+=("$patient_id")
+        done
+    fi
     
     for i in $(seq 1 $iterations_per_worker); do
-        local global_transaction_id=$(( (worker_id - 1) * iterations_per_worker + i ))
-        local patient_index=$(( (global_transaction_id - 1) % shared_patients + 1 ))
-        local patient_id="${TEST_PATIENT_ID_PREFIX}$(printf "%06d" $patient_index)"
+        # For read operations, cycle through worker's own patient pool
+        local patient_id
+        if [[ "$test_type" == "cross_org" || "$test_type" == "read" ]]; then
+            local patient_index=$(( (i - 1) % worker_patients ))
+            patient_id="${worker_patient_ids[$patient_index]}"
+        else
+            # For create operations, generate unique IDs
+            patient_id="${TEST_PATIENT_ID_PREFIX}W${worker_id}_$(printf "%06d" $i)"
+        fi
         
         local transaction_start=$(date +%s.%N)
         local duration
@@ -171,12 +206,22 @@ EOF
         case "$test_type" in
             "cross_org")
                 setup_org2_env > /dev/null 2>&1
-                duration=$(read_ehr "${patient_id}" 2>/dev/null)
+                # Data verification for first 2 operations per worker (following working scripts)
+                if [ $i -le 2 ]; then
+                    duration=$(read_ehr "${patient_id}" "true" 2>/dev/null)  # Enable data verification
+                else
+                    duration=$(read_ehr "${patient_id}" 2>/dev/null)
+                fi
                 exit_status=$?
                 ;;
             "read")
                 setup_org1_env > /dev/null 2>&1
-                duration=$(read_ehr "${patient_id}" 2>/dev/null)
+                # Data verification for first 2 operations per worker (following working scripts)
+                if [ $i -le 2 ]; then
+                    duration=$(read_ehr "${patient_id}" "true" 2>/dev/null)  # Enable data verification
+                else
+                    duration=$(read_ehr "${patient_id}" 2>/dev/null)
+                fi
                 exit_status=$?
                 ;;
             "create")
@@ -242,6 +287,8 @@ run_single_test() {
     
     local iterations_per_worker=$((TOTAL_ITERATIONS / PARALLEL_PROCESSES))
     print_info "Iterations per worker: ${iterations_per_worker}"
+    
+    # Each worker will create its own data in parallel - no pre-setup needed
     
     local test_start=$(date +%s.%N)
     
