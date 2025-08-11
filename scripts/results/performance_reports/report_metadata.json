@@ -1,0 +1,46 @@
+{
+  "report_metadata": {
+    "generation_timestamp": "2025-08-10T23:51:18-03:00",
+    "report_version": "Enhanced Automated Management",
+    "academic_project": "Master's Dissertation - EHR Blockchain Performance Analysis",
+    "generation_epoch": 1754880678
+  },
+  "system_environment": {
+    "platform": "Linux",
+    "kernel_version": "6.8.0-65-generic",
+    "architecture": "x86_64",
+    "cpu_cores": 8,
+    "memory_total": "15Gi",
+    "hostname": "ubuntu-22",
+    "user": "vitor"
+  },
+  "blockchain_configuration": {
+    "platform": "Hyperledger Fabric",
+    "version": "v2.5.10",
+    "network_topology": "2 Organizations (Org1, Org2)",
+    "consensus_algorithm": "Raft Ordering Service",
+    "security": "TLS Enabled, MSP Authentication",
+    "chaincode": "EHR Management Smart Contract v1.0"
+  },
+  "data_sources": {
+    "latency_files_count": 315,
+    "throughput_files_count": 115,
+    "parallel_tests_count": 5,
+    "latest_latency_file": "latency_stats_update_20250810_233028.csv",
+    "latest_throughput_file": "throughput_test_20250810_232749.csv",
+    "latest_parallel_test": "scaling_20250810_234428"
+  },
+  "academic_standards": {
+    "statistical_significance": "25+ iterations per configuration",
+    "latency_analysis": "P50, P95, P99 percentile characterization",
+    "scaling_analysis": "1-16 worker parallel processing evaluation",
+    "methodology": "Empirical blockchain performance evaluation",
+    "reproducibility": "Automated test execution with documented configuration"
+  },
+  "file_locations": {
+    "test_scripts": "scripts/performance/",
+    "result_data": "scripts/results/",
+    "configuration": "scripts/performance/config.sh",
+    "final_reports": "scripts/results/performance_reports/"
+  }
+}
