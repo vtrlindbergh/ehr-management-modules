@@ -35,40 +35,40 @@ provider "azurerm" {
 
 # Local values for consistent naming and tagging
 locals {
-  project_name = "ehr-blockchain"
-  environment  = "dev"
-  region       = "eastus"  # Cost-optimized region selection
-  
   # Academic project tags for resource governance
   common_tags = {
     Project     = "EHR-Blockchain-Dissertation"
-    Environment = local.environment
-    Owner       = "vitor-lindbergh"
-    Purpose     = "academic-research"
-    Department  = "computer-science"
-    Region      = local.region
+    Environment = var.environment
+    Owner       = var.owner
+    Purpose     = var.purpose
+    Department  = var.department
+    Region      = var.location_short
   }
 }
 
 # Resource group (already exists, but managed by Terraform for consistency)
 resource "azurerm_resource_group" "main" {
-  name     = "rg-${local.project_name}-${local.environment}"
-  location = local.region
-  tags     = local.common_tags
+  name     = "rg-${var.project_name}-${var.environment}"
+  location = var.location
+
+  tags = local.common_tags
+}
+
+# Network infrastructure module
+module "network" {
+  source = "../../modules/network"
+
+  resource_group_name = azurerm_resource_group.main.name
+  location           = azurerm_resource_group.main.location
+  project_name       = var.project_name
+  environment        = var.environment
+  common_tags        = local.common_tags
+
+  # Network configuration for blockchain (cost-optimized)
+  vnet_address_space      = var.vnet_address_space
+  subnet_address_prefixes = var.subnet_address_prefixes
+  enable_ddos_protection  = false  # Cost optimization: ~$3,000/month savings
+  enable_outbound_access  = false  # Cost optimization: Avoid data transfer charges
 }
 
 # Output important values for use in other modules
-output "resource_group_name" {
-  description = "Name of the main resource group"
-  value       = azurerm_resource_group.main.name
-}
-
-output "location" {
-  description = "Azure region for deployment"
-  value       = azurerm_resource_group.main.location
-}
-
-output "common_tags" {
-  description = "Common tags applied to all resources"
-  value       = local.common_tags
-}

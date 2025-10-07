@@ -93,3 +93,8 @@ scripts/results/performance_reports/performance_summary_*.md
 # Keep this final report for git tracking:
 # scripts/results/performance_reports/ehr_performance_analysis_final_report.md
 # scripts/results/performance_reports/ehr_performance_analysis_final_report.csv
+
+# Additional Terraform security patterns
+**/personal.tfvars
+**/secrets.tfvars
+**/.env.personal
