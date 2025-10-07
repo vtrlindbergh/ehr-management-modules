@@ -48,6 +48,31 @@ dist/
 *.key
 *.crt
 *.ca
+
+# === AZURE INFRASTRUCTURE SECURITY ===
+# Terraform state files (contain sensitive data)
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# Azure credentials and secrets
+azure-credentials.json
+service-principal.json
+
+# Environment files with secrets
+.env.local
+.env.production
+.env.azure
+secrets/
+
+# SSH keys
+id_rsa*
+*.ppk
+
+# Azure CLI cache
+.azure/
 wallet/
 
 # Local configuration files that may contain sensitive data
