@@ -28,7 +28,7 @@ variable "location_short" {
 variable "owner" {
   description = "Resource owner/maintainer"
   type        = string
-  default     = "student-researcher"
+  default     = "vitor-lindbergh"
 }
 
 variable "department" {
@@ -62,4 +62,54 @@ variable "subnet_address_prefixes" {
     org1    = ["10.0.2.0/24"]
     org2    = ["10.0.3.0/24"]
   }
+}
+
+# Storage configuration
+variable "storage_replication_type" {
+  description = "Storage account replication type"
+  type        = string
+  default     = "LRS"
+}
+
+variable "storage_access_tier" {
+  description = "Storage account access tier"
+  type        = string
+  default     = "Hot"
+}
+
+variable "enable_storage_backup" {
+  description = "Enable backup for storage resources"
+  type        = bool
+  default     = false
+}
+
+# Compute configuration
+variable "deployment_mode" {
+  description = "Deployment mode: single (1 VM) or distributed (3 VMs)"
+  type        = string
+  default     = "single"
+}
+
+variable "vm_admin_username" {
+  description = "Admin username for VMs"
+  type        = string
+  default     = "azureuser"
+}
+
+variable "ssh_public_key_path" {
+  description = "Path to SSH public key file"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
+}
+
+variable "enable_auto_shutdown" {
+  description = "Enable auto-shutdown for cost optimization"
+  type        = bool
+  default     = true
+}
+
+variable "auto_shutdown_time" {
+  description = "Auto-shutdown time in 24h format (e.g., '1900')"
+  type        = string
+  default     = "1900"
 }

@@ -55,3 +55,12 @@ output "network_security_group_name" {
   description = "Name of the network security group"
   value       = azurerm_network_security_group.blockchain_nsg.name
 }
+
+output "subnet_ids" {
+  description = "Map of subnet IDs"
+  value = {
+    orderer = azurerm_subnet.orderer_subnet.id
+    org1    = azurerm_subnet.org1_subnet.id
+    org2    = azurerm_subnet.org2_subnet.id
+  }
+}

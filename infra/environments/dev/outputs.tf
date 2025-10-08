@@ -27,17 +27,49 @@ output "vnet_name" {
   value       = module.network.vnet_name
 }
 
-output "orderer_subnet_id" {
-  description = "ID of the orderer subnet"
-  value       = module.network.orderer_subnet_id
+output "subnet_ids" {
+  description = "IDs of all subnets"
+  value       = module.network.subnet_ids
 }
 
-output "org1_subnet_id" {
-  description = "ID of the org1 subnet"
-  value       = module.network.org1_subnet_id
+# Storage outputs
+output "storage_account_name" {
+  description = "Name of the storage account"
+  value       = module.storage.storage_account_name
 }
 
-output "org2_subnet_id" {
-  description = "ID of the org2 subnet"
-  value       = module.network.org2_subnet_id
+output "storage_containers" {
+  description = "Created storage containers"
+  value       = module.storage.storage_containers
+}
+
+output "file_share_name" {
+  description = "Name of the shared configuration file share"
+  value       = module.storage.file_share_name
+}
+
+# Compute outputs
+output "vm_public_ips" {
+  description = "Public IP addresses of the VMs"
+  value       = module.compute.vm_public_ips
+}
+
+output "vm_private_ips" {
+  description = "Private IP addresses of the VMs"
+  value       = module.compute.vm_private_ips
+}
+
+output "ssh_connection_commands" {
+  description = "SSH connection commands for each VM"
+  value       = module.compute.ssh_connection_commands
+}
+
+output "deployment_mode" {
+  description = "Current deployment mode"
+  value       = module.compute.deployment_mode
+}
+
+output "vm_configurations" {
+  description = "VM configuration details"
+  value       = module.compute.vm_configurations
 }

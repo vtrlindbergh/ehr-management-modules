@@ -71,4 +71,45 @@ module "network" {
   enable_outbound_access  = false  # Cost optimization: Avoid data transfer charges
 }
 
+# Storage infrastructure module
+module "storage" {
+  source = "../../modules/storage"
+
+  resource_group_name = azurerm_resource_group.main.name
+  location           = azurerm_resource_group.main.location
+  project_name       = var.project_name
+  environment        = var.environment
+
+  # Storage configuration (cost-optimized)
+  replication_type = var.storage_replication_type
+  access_tier      = var.storage_access_tier
+  enable_backup    = var.enable_storage_backup
+}
+
+# Compute infrastructure module
+module "compute" {
+  source = "../../modules/compute"
+  
+  depends_on = [module.network]
+
+  resource_group_name = azurerm_resource_group.main.name
+  location           = azurerm_resource_group.main.location
+  project_name       = var.project_name
+  environment        = var.environment
+
+  # Subnet IDs from network module
+  subnet_ids = {
+    orderer = module.network.subnet_ids["orderer"]
+    org1    = module.network.subnet_ids["org1"]
+    org2    = module.network.subnet_ids["org2"]
+  }
+
+  # VM configuration
+  deployment_mode         = var.deployment_mode
+  vm_admin_username      = var.vm_admin_username
+  ssh_public_key_path    = var.ssh_public_key_path
+  enable_auto_shutdown   = var.enable_auto_shutdown
+  auto_shutdown_time     = var.auto_shutdown_time
+}
+
 # Output important values for use in other modules
