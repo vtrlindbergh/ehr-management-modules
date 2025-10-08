@@ -16,6 +16,8 @@ packages:
   - wget
   - htop
   - tree
+  - golang-go
+  - build-essential
 
 # Configure Docker
 runcmd:
@@ -37,14 +39,28 @@ runcmd:
   - curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   - chmod +x /usr/local/bin/docker-compose
   
-  # Create hyperledger directories
-  - mkdir -p /opt/hyperledger/{fabric-samples,chaincode,config,crypto-config,logs}
+  # Create hyperledger directories (fixed directory creation)
+  - mkdir -p /opt/hyperledger/fabric-samples
+  - mkdir -p /opt/hyperledger/chaincode
+  - mkdir -p /opt/hyperledger/config
+  - mkdir -p /opt/hyperledger/crypto-config
+  - mkdir -p /opt/hyperledger/logs
+  - chown -R ${admin_username}:${admin_username} /opt/hyperledger
+  
+  # Install Hyperledger Fabric binaries and Docker images
+  - cd /opt/hyperledger
+  - curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.4.9 1.5.2
   - chown -R ${admin_username}:${admin_username} /opt/hyperledger
   
   # Set up environment for Hyperledger Fabric
   - echo 'export PATH=$PATH:/opt/hyperledger/fabric-samples/bin' >> /home/${admin_username}/.bashrc
   - echo 'export FABRIC_CFG_PATH=/opt/hyperledger/config' >> /home/${admin_username}/.bashrc
+  - echo 'export GOPATH=/home/${admin_username}/go' >> /home/${admin_username}/.bashrc
   - echo 'cd /opt/hyperledger' >> /home/${admin_username}/.bashrc
+  
+  # Create Go workspace
+  - mkdir -p /home/${admin_username}/go/src /home/${admin_username}/go/bin /home/${admin_username}/go/pkg
+  - chown -R ${admin_username}:${admin_username} /home/${admin_username}/go
 
 # Create a marker file to indicate cloud-init completion
 write_files:
@@ -53,7 +69,10 @@ write_files:
       Cloud-init setup completed at $(date)
       VM Role: ${vm_role}
       Docker installed and configured
+      Go language installed
+      Hyperledger Fabric binaries installed
       Hyperledger directories created
+      Ready for blockchain development
     permissions: '0644'
     owner: ${admin_username}:${admin_username}
 

@@ -7,7 +7,7 @@ resource "random_string" "storage_suffix" {
 
 # Storage Account for Hyperledger Fabric shared data
 resource "azurerm_storage_account" "hyperledger_storage" {
-  name                     = "st${var.project_name}${var.environment}${random_string.storage_suffix.result}"
+  name                     = "stehr${var.environment}${random_string.storage_suffix.result}"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"

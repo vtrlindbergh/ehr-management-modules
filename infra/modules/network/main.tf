@@ -86,6 +86,19 @@ resource "azurerm_network_security_group" "blockchain_nsg" {
     destination_address_prefix = "*"
   }
 
+  # Allow SSH access from internet for admin purposes
+  security_rule {
+    name                       = "Allow-SSH-External"
+    priority                   = 1000
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "22"
+    source_address_prefix     = "*"
+    destination_address_prefix = "*"
+  }
+
   # Allow SSH access within VNet for admin purposes
   security_rule {
     name                       = "Allow-SSH-Internal"
