@@ -18,14 +18,14 @@ locals {
     }
     org1 = {
       name        = "vm-${var.project_name}-org1-${var.environment}"
-      size        = "Standard_B1s"  # 1 vCPU, 1 GB RAM
+      size        = "Standard_B2s"  # 2 vCPUs, 4 GB RAM (Fabric peer + chaincode needs >1GB)
       subnet_id   = var.subnet_ids.org1
       os_disk_size = 32
       data_disk_size = 64
     }
     org2 = {
       name        = "vm-${var.project_name}-org2-${var.environment}"
-      size        = "Standard_B1s"  # 1 vCPU, 1 GB RAM
+      size        = "Standard_B2s"  # 2 vCPUs, 4 GB RAM (Fabric peer + chaincode needs >1GB)
       subnet_id   = var.subnet_ids.org2
       os_disk_size = 32
       data_disk_size = 64

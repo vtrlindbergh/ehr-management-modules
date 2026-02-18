@@ -112,6 +112,70 @@ resource "azurerm_network_security_group" "blockchain_nsg" {
     destination_address_prefix = "*"
   }
 
+  # Allow Org2 Peer gRPC port (9051) within VNet
+  security_rule {
+    name                       = "Allow-Peer-Org2-Internal"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "9051"
+    source_address_prefix     = var.vnet_address_space[0]
+    destination_address_prefix = "*"
+  }
+
+  # Docker Swarm management port (TCP 2377)
+  security_rule {
+    name                       = "Allow-Swarm-Management"
+    priority                   = 1005
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "2377"
+    source_address_prefix     = var.vnet_address_space[0]
+    destination_address_prefix = "*"
+  }
+
+  # Docker Swarm node communication (TCP+UDP 7946)
+  security_rule {
+    name                       = "Allow-Swarm-Node-TCP"
+    priority                   = 1006
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range         = "*"
+    destination_port_range    = "7946"
+    source_address_prefix     = var.vnet_address_space[0]
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Allow-Swarm-Node-UDP"
+    priority                   = 1007
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range         = "*"
+    destination_port_range    = "7946"
+    source_address_prefix     = var.vnet_address_space[0]
+    destination_address_prefix = "*"
+  }
+
+  # Docker Swarm overlay network VXLAN (UDP 4789)
+  security_rule {
+    name                       = "Allow-Swarm-Overlay"
+    priority                   = 1008
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range         = "*"
+    destination_port_range    = "4789"
+    source_address_prefix     = var.vnet_address_space[0]
+    destination_address_prefix = "*"
+  }
+
   # Deny all other inbound traffic
   security_rule {
     name                       = "Deny-All-Inbound"
