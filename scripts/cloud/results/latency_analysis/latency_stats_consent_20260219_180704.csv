@@ -1,0 +1,16 @@
+# End-to-End Latency Distribution Analysis — CLOUD DEPLOYMENT
+# Deployment: 3 Azure VMs, Docker Swarm overlay, northcentralus
+# VM Size: Standard_B1ms (1 vCPU, 2 GB RAM)
+# Test Type: all
+# Timestamp: 20260219_180704
+# Sample Size: 500
+
+Metric,Value_Seconds,Value_Milliseconds
+Count,500,500
+Minimum,.098357025,98.357025000
+Maximum,.193977462,193.977462000
+Mean,.114633,114.633000
+Standard_Deviation,.012165,12.165000
+P50_Median,.111942713,111.942713000
+P95,.141124176,141.124176000
+P99,.160092554,160.092554000

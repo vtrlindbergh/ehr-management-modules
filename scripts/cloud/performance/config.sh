@@ -127,16 +127,20 @@ check_network_status() {
 
     local all_ok=true
 
-    # Check connectivity to orderer VM
-    if ! ping -c 1 -W 2 "${ORDERER_VM_IP}" > /dev/null 2>&1; then
-        print_warning "Cannot reach orderer VM at ${ORDERER_VM_IP}"
+    # Check connectivity to orderer VM (TCP port check — ICMP blocked by Azure NSG)
+    if ! timeout 3 bash -c "echo > /dev/tcp/${ORDERER_VM_IP}/7050" 2>/dev/null; then
+        print_warning "Cannot reach orderer at ${ORDERER_VM_IP}:7050"
         all_ok=false
+    else
+        print_success "Orderer reachable at ${ORDERER_VM_IP}:7050"
     fi
 
-    # Check connectivity to Org2 VM
-    if ! ping -c 1 -W 2 "${ORG2_VM_IP}" > /dev/null 2>&1; then
-        print_warning "Cannot reach Org2 VM at ${ORG2_VM_IP}"
+    # Check connectivity to Org2 VM (TCP port check)
+    if ! timeout 3 bash -c "echo > /dev/tcp/${ORG2_VM_IP}/9051" 2>/dev/null; then
+        print_warning "Cannot reach Org2 peer at ${ORG2_VM_IP}:9051"
         all_ok=false
+    else
+        print_success "Org2 peer reachable at ${ORG2_VM_IP}:9051"
     fi
 
     # Check if peer binary is available

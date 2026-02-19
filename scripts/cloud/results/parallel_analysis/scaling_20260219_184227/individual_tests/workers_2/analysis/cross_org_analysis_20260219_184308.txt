@@ -1,0 +1,25 @@
+Cloud Parallel Test Analysis: CROSS_ORG
+=============================================
+Deployment:
+- Cloud Provider: Azure (northcentralus)
+- VM Size: Standard_B1ms (1 vCPU, 2 GB RAM)
+- Network: Docker Swarm overlay (fabric_test)
+- Orderer: 10.0.1.4:7050 | Org1: 10.0.2.4:7051 | Org2: 10.0.3.4:9051
+
+Test Configuration:
+- Workers: 2
+- Total Iterations: 200
+- Iterations per Worker: 100
+- System vCPUs: 1
+
+Performance Results:
+- Total Time: 20.856489414s
+- Successful Transactions: 200
+- Failed Transactions: 0
+- Success Rate: 100.00%
+- Overall TPS: 9.58
+- TPS per Worker: 4.79
+
+Scaling Metrics:
+- Workers per vCPU: 2.0
+- Resource Utilization: 100.0%

@@ -1,0 +1,74 @@
+{
+  "report_metadata": {
+    "generation_timestamp": "2026-02-19T18:59:37+00:00",
+    "report_version": "Cloud Performance Analysis",
+    "academic_project": "Master's Dissertation - EHR Blockchain Performance Analysis (Cloud)",
+    "generation_epoch": 1771527577,
+    "deployment_type": "cloud"
+  },
+  "cloud_infrastructure": {
+    "provider": "Microsoft Azure",
+    "region": "northcentralus",
+    "vm_size": "Standard_B1ms",
+    "vcpus_per_vm": 1,
+    "ram_per_vm_gb": 2,
+    "total_vms": 3,
+    "networking": "Docker Swarm overlay (fabric_test)",
+    "orderer_vm": {
+      "private_ip": "10.0.1.4",
+      "role": "Orderer + TLS CA",
+      "subnet": "10.0.1.0/24"
+    },
+    "org1_vm": {
+      "private_ip": "10.0.2.4",
+      "role": "Org1 Peer + CLI + CA",
+      "subnet": "10.0.2.0/24"
+    },
+    "org2_vm": {
+      "private_ip": "10.0.3.4",
+      "role": "Org2 Peer + CA",
+      "subnet": "10.0.3.0/24"
+    }
+  },
+  "system_environment": {
+    "platform": "Linux",
+    "kernel_version": "6.8.0-1044-azure",
+    "architecture": "x86_64",
+    "cpu_cores": 1,
+    "memory_total": "1.9Gi",
+    "hostname": "vm-ehr-blockchain-org1-dev",
+    "user": "azureuser"
+  },
+  "blockchain_configuration": {
+    "platform": "Hyperledger Fabric",
+    "version": "v2.5.10",
+    "ca_version": "v1.5.12",
+    "go_version": "1.22.7",
+    "network_topology": "2 Organizations (Org1, Org2) across 3 VMs",
+    "consensus_algorithm": "Raft Ordering Service",
+    "security": "TLS Enabled, MSP Authentication",
+    "chaincode": "EHR Management Smart Contract v2.0 (ehrCC)",
+    "channel": "mychannel"
+  },
+  "data_sources": {
+    "latency_files_count": 14,
+    "throughput_files_count": 6,
+    "parallel_tests_count": 1,
+    "latest_latency_file": "latency_stats_update_20260219_180704.csv",
+    "latest_throughput_file": "none",
+    "latest_parallel_test": "scaling_20260219_184227"
+  },
+  "academic_standards": {
+    "statistical_significance": "500 iterations per operation",
+    "latency_analysis": "P50, P95, P99 percentile characterization",
+    "scaling_analysis": "1-8 worker parallel processing evaluation",
+    "methodology": "Empirical blockchain performance evaluation — cloud vs local comparison",
+    "reproducibility": "Automated test execution with documented configuration"
+  },
+  "file_locations": {
+    "test_scripts": "scripts/cloud/performance/",
+    "result_data": "scripts/cloud/results/",
+    "configuration": "scripts/cloud/performance/config.sh",
+    "final_reports": "scripts/cloud/results/performance_reports/"
+  }
+}

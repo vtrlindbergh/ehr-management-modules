@@ -454,6 +454,337 @@ EOF
 }
 
 # =============================================================================
+# Enhanced Automated Report Management Functions (Cloud)
+# =============================================================================
+
+# Function to generate comprehensive report metadata
+generate_report_metadata() {
+    local metadata_file="$1"
+
+    print_info "Generating comprehensive report metadata..."
+
+    cat > "$metadata_file" << EOF
+{
+  "report_metadata": {
+    "generation_timestamp": "$(date -Iseconds)",
+    "report_version": "Cloud Performance Analysis",
+    "academic_project": "Master's Dissertation - EHR Blockchain Performance Analysis (Cloud)",
+    "generation_epoch": $(date +%s),
+    "deployment_type": "cloud"
+  },
+  "cloud_infrastructure": {
+    "provider": "Microsoft Azure",
+    "region": "${AZURE_REGION}",
+    "vm_size": "${VM_SIZE}",
+    "vcpus_per_vm": ${VM_VCPUS},
+    "ram_per_vm_gb": ${VM_RAM_GB},
+    "total_vms": 3,
+    "networking": "Docker Swarm overlay (${SWARM_OVERLAY_NETWORK})",
+    "orderer_vm": {
+      "private_ip": "${ORDERER_VM_IP}",
+      "role": "Orderer + TLS CA",
+      "subnet": "10.0.1.0/24"
+    },
+    "org1_vm": {
+      "private_ip": "${ORG1_VM_IP}",
+      "role": "Org1 Peer + CLI + CA",
+      "subnet": "10.0.2.0/24"
+    },
+    "org2_vm": {
+      "private_ip": "${ORG2_VM_IP}",
+      "role": "Org2 Peer + CA",
+      "subnet": "10.0.3.0/24"
+    }
+  },
+  "system_environment": {
+    "platform": "$(uname -s)",
+    "kernel_version": "$(uname -r)",
+    "architecture": "$(uname -m)",
+    "cpu_cores": $(nproc),
+    "memory_total": "$(free -h | grep '^Mem:' | awk '{print $2}')",
+    "hostname": "$(hostname)",
+    "user": "$(whoami)"
+  },
+  "blockchain_configuration": {
+    "platform": "Hyperledger Fabric",
+    "version": "v${FABRIC_VERSION}",
+    "ca_version": "v${CA_VERSION}",
+    "go_version": "${GO_VERSION}",
+    "network_topology": "2 Organizations (Org1, Org2) across 3 VMs",
+    "consensus_algorithm": "Raft Ordering Service",
+    "security": "TLS Enabled, MSP Authentication",
+    "chaincode": "EHR Management Smart Contract v2.0 (ehrCC)",
+    "channel": "mychannel"
+  },
+  "data_sources": {
+    "latency_files_count": $(find "$LATENCY_DIR" -name "*.csv" 2>/dev/null | wc -l),
+    "throughput_files_count": $(find "$THROUGHPUT_DIR" -name "*.csv" 2>/dev/null | wc -l),
+    "parallel_tests_count": $(find "$PARALLEL_DIR" -name "scaling_*" -type d 2>/dev/null | wc -l),
+    "latest_latency_file": "$(find "$LATENCY_DIR" -name "latency_stats_*.csv" 2>/dev/null | sort | tail -1 | xargs basename 2>/dev/null || echo "none")",
+    "latest_throughput_file": "$(find "$THROUGHPUT_DIR" -name "throughput_test_*.csv" 2>/dev/null | sort | tail -1 | xargs basename 2>/dev/null || echo "none")",
+    "latest_parallel_test": "$(find "$PARALLEL_DIR" -name "scaling_*" -type d 2>/dev/null | sort | tail -1 | xargs basename 2>/dev/null || echo "none")"
+  },
+  "academic_standards": {
+    "statistical_significance": "500 iterations per operation",
+    "latency_analysis": "P50, P95, P99 percentile characterization",
+    "scaling_analysis": "1-8 worker parallel processing evaluation",
+    "methodology": "Empirical blockchain performance evaluation — cloud vs local comparison",
+    "reproducibility": "Automated test execution with documented configuration"
+  },
+  "file_locations": {
+    "test_scripts": "scripts/cloud/performance/",
+    "result_data": "scripts/cloud/results/",
+    "configuration": "scripts/cloud/performance/config.sh",
+    "final_reports": "scripts/cloud/results/performance_reports/"
+  }
+}
+EOF
+
+    print_success "Report metadata generated: $metadata_file"
+}
+
+# Function to update report tracking log
+update_report_tracking_log() {
+    local output_dir="$1"
+    local tracking_log="${output_dir}/report_generation_log.csv"
+
+    print_info "Updating report tracking log..."
+
+    if [ ! -f "$tracking_log" ]; then
+        cat > "$tracking_log" << EOF
+# Report Generation Tracking Log — Cloud Deployment
+# Academic Research - Master's Dissertation
+#
+Timestamp,Report_Version,Latency_Files,Throughput_Files,Parallel_Tests,System_Load,Memory_Usage
+EOF
+    fi
+
+    local system_load=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | tr -d ',')
+    local memory_usage=$(free | grep '^Mem:' | awk '{printf "%.1f", ($3/$2)*100}')
+
+    echo "$(date -Iseconds),Cloud Analysis,$(find "$LATENCY_DIR" -name "*.csv" 2>/dev/null | wc -l),$(find "$THROUGHPUT_DIR" -name "*.csv" 2>/dev/null | wc -l),$(find "$PARALLEL_DIR" -name "scaling_*" -type d 2>/dev/null | wc -l),${system_load},${memory_usage}%" >> "$tracking_log"
+
+    print_success "Report tracking log updated: $tracking_log"
+}
+
+# Function to generate environment and configuration metadata
+generate_environment_metadata() {
+    local output_dir="$1"
+    local env_file="${output_dir}/environment_configuration.md"
+
+    print_info "Generating cloud environment and configuration documentation..."
+
+    cat > "$env_file" << 'ENVEOF'
+# Cloud Environment Configuration Documentation
+**Academic Research - Master's Dissertation**
+ENVEOF
+
+    cat >> "$env_file" << EOF
+**Generated:** $(date '+%Y-%m-%d %H:%M:%S %Z')
+
+## Cloud Infrastructure
+
+**Provider:** Microsoft Azure  
+**Region:** ${AZURE_REGION}  
+**VM Size:** ${VM_SIZE} (${VM_VCPUS} vCPU, ${VM_RAM_GB} GB RAM per VM)  
+**Total VMs:** 3  
+**Networking:** Docker Swarm overlay (\`${SWARM_OVERLAY_NETWORK}\`)
+
+### VM Layout
+
+| Role | Private IP | Subnet | Services |
+|------|-----------|--------|----------|
+| Orderer VM | ${ORDERER_VM_IP} | 10.0.1.0/24 | Orderer, TLS CA |
+| Org1 VM | ${ORG1_VM_IP} | 10.0.2.0/24 | Peer0-Org1, CLI, Org1 CA |
+| Org2 VM | ${ORG2_VM_IP} | 10.0.3.0/24 | Peer0-Org2, Org2 CA |
+
+## System Environment
+
+**Operating System:**
+- Platform: $(uname -s)
+- Kernel: $(uname -r)
+- Architecture: $(uname -m)
+- Hostname: $(hostname)
+
+**Hardware Configuration (per VM):**
+- VM Size: ${VM_SIZE}
+- vCPUs: ${VM_VCPUS}
+- RAM: ${VM_RAM_GB} GB
+- CPU Cores (this node): $(nproc)
+- Total Memory (this node): $(free -h | grep '^Mem:' | awk '{print $2}')
+- Available Memory: $(free -h | grep '^Mem:' | awk '{print $7}')
+- System Load: $(uptime | awk -F'load average:' '{print $2}')
+
+**User Environment:**
+- User: $(whoami)
+- Working Directory: $(pwd)
+- Shell: \$SHELL
+
+## Blockchain Configuration
+
+**Hyperledger Fabric Network:**
+- Fabric Version: v${FABRIC_VERSION}
+- CA Version: v${CA_VERSION}
+- Go Version: ${GO_VERSION}
+- Network Topology: 2 Organizations across 3 VMs
+- Consensus Algorithm: Raft Ordering Service
+- Security Features: TLS Enabled, MSP Authentication
+- Chaincode: EHR Management Smart Contract v2.0 (ehrCC)
+- Channel: mychannel
+
+**Network Components:**
+- Organizations: 2 (Org1, Org2)
+- Peers per Organization: 1
+- Ordering Service: Raft-based (single orderer node)
+- Certificate Authorities: 3 (Orderer CA, Org1 CA, Org2 CA)
+- Channels: 1 (mychannel)
+- Docker Swarm Overlay: \`${SWARM_OVERLAY_NETWORK}\`
+
+## File Structure and Locations
+
+**Test Scripts:**
+- Location: \`scripts/cloud/performance/\`
+- Configuration: \`scripts/cloud/performance/config.sh\`
+- Main Scripts:
+  - \`cloud_latency_analysis.sh\` - End-to-end latency measurement
+  - \`cloud_throughput_test.sh\` - Throughput benchmarking
+  - \`cloud_scaling_test.sh\` - Scaling analysis (1-8 workers)
+  - \`cloud_generate_summary_report.sh\` - Report generation
+
+**Result Data:**
+- Location: \`scripts/cloud/results/\`
+- Latency Data: \`scripts/cloud/results/latency_analysis/\`
+- Throughput Data: \`scripts/cloud/results/throughput_analysis/\`
+- Parallel Data: \`scripts/cloud/results/parallel_analysis/\`
+- Final Reports: \`scripts/cloud/results/performance_reports/\`
+
+## Test Execution Standards
+
+**Academic Rigor:**
+- Statistical Significance: 500 iterations per operation
+- Latency Analysis: P50, P95, P99 percentile characterization
+- Throughput Measurement: Concurrent transaction processing evaluation
+- Scaling Analysis: 1-8 worker parallel processing assessment
+
+**Reproducibility Measures:**
+- Automated test execution with documented parameters
+- Timestamped result files with complete metadata
+- Version-controlled configuration and scripts
+- Comprehensive environment documentation
+
+**Data Quality Assurance:**
+- Pre-test environment validation
+- Post-test result verification
+- Automated data source validation
+- Statistical validity checks
+
+## Execution Commands
+
+**Individual Tests:**
+\`\`\`bash
+# Latency Analysis (500 iterations, all operations)
+bash cloud_latency_analysis.sh 500 all
+
+# Throughput Testing (500 iterations, all operations)
+bash cloud_throughput_test.sh 500 all
+
+# Scaling Analysis (800 base iterations, cross-org)
+bash cloud_scaling_test.sh 800 cross_org
+
+# Generate Performance Summary Report
+bash cloud_generate_summary_report.sh --format both
+\`\`\`
+
+---
+
+*This documentation provides complete cloud environment context for academic research reproducibility and peer review validation.*
+EOF
+
+    print_success "Environment configuration documented: $env_file"
+}
+
+# Function to generate final reports with comprehensive metadata
+generate_final_reports_with_metadata() {
+    local output_dir="$1"
+    local format="$2"
+
+    print_info "Generating enhanced final reports with metadata..."
+
+    local final_md="${output_dir}/ehr_cloud_performance_analysis_final_report.md"
+    local final_csv="${output_dir}/ehr_cloud_performance_analysis_final_report.csv"
+    local metadata_file="${output_dir}/report_metadata.json"
+
+    # Generate comprehensive metadata
+    generate_report_metadata "$metadata_file"
+
+    # Enhanced Markdown report with metadata
+    if [ "$format" = "md" ] || [ "$format" = "both" ]; then
+        if [ -f "$SUMMARY_REPORT" ]; then
+            cat > "$final_md" << EOF
+# EHR Blockchain Cloud Performance Analysis Summary
+**Academic Research - Master's Dissertation**
+**Generated:** $(date '+%a %d %b %Y %H:%M:%S %Z')
+**System:** Hyperledger Fabric v${FABRIC_VERSION}
+**Deployment:** 3 Azure VMs (${VM_SIZE}), Docker Swarm overlay
+**Network:** 2 Organizations, TLS Enabled
+**Report Version:** Cloud Performance Analysis
+
+---
+
+## Executive Summary
+
+This comprehensive performance analysis provides empirical evaluation of Hyperledger Fabric blockchain
+performance characteristics for Electronic Health Record (EHR) management systems deployed across a
+distributed cloud infrastructure (3 Azure VMs with Docker Swarm). The analysis encompasses latency
+distribution, throughput capabilities, and parallel scaling behavior under academic research standards.
+
+**Key Performance Indicators:**
+- **Latency Analysis**: End-to-end transaction confirmation timing with statistical distribution
+- **Throughput Analysis**: Concurrent transaction processing capabilities
+- **Parallel Scaling**: Multi-worker performance scaling (1-8 concurrent workers)
+
+**Cloud Infrastructure:**
+- **Provider:** Microsoft Azure (${AZURE_REGION})
+- **VM Size:** ${VM_SIZE} (${VM_VCPUS} vCPU, ${VM_RAM_GB} GB RAM)
+- **Network:** Docker Swarm overlay across 3 VMs
+
+**Academic Standards:**
+- Statistical significance with 500 iterations per test configuration
+- P50, P95, P99 percentile analysis for latency characterization
+- Scaling efficiency calculations for parallel processing evaluation
+- Reproducible methodology for peer review and validation
+
+---
+
+EOF
+
+            # Append the original report content (skip the existing header)
+            tail -n +6 "$SUMMARY_REPORT" >> "$final_md"
+
+            print_success "Enhanced final report created: $final_md"
+        fi
+    fi
+
+    # Enhanced CSV report
+    if [ "$format" = "csv" ] || [ "$format" = "both" ]; then
+        if [ -f "$CSV_REPORT" ]; then
+            cat > "$final_csv" << EOF
+# EHR Blockchain Cloud Performance Analysis - Final Report CSV
+# Academic Research - Master's Dissertation
+# Generated: $(date '+%Y-%m-%d %H:%M:%S %Z')
+# System: Hyperledger Fabric v${FABRIC_VERSION}
+# Deployment: 3 Azure VMs (${VM_SIZE}), Docker Swarm overlay
+# Region: ${AZURE_REGION}
+#
+EOF
+            cat "$CSV_REPORT" >> "$final_csv"
+
+            print_success "Enhanced final CSV report created: $final_csv"
+        fi
+    fi
+}
+
+# =============================================================================
 # Main Execution
 # =============================================================================
 
@@ -531,6 +862,29 @@ main() {
     if [ "$format" = "csv" ] || [ "$format" = "both" ]; then
         print_success "CSV report: $CSV_REPORT"
     fi
+
+    # =============================================
+    # Enhanced Automated Report Management
+    # =============================================
+    print_header "Automated Report Management"
+
+    # Generate enhanced final reports with metadata
+    generate_final_reports_with_metadata "$output_dir" "$format"
+
+    # Create report management logs
+    update_report_tracking_log "$output_dir"
+
+    # Generate environment and configuration metadata
+    generate_environment_metadata "$output_dir"
+
+    echo ""
+    print_success "Enhanced Report Management Complete!"
+    print_info "Enhanced automated report management features:"
+    print_info "  Auto-updating final reports with metadata"
+    print_info "  Comprehensive report_metadata.json"
+    print_info "  Environment configuration documentation"
+    print_info "  Report generation tracking log"
+    print_info "  Academic publication-ready format"
 
     echo ""
     print_info "Report preview:"

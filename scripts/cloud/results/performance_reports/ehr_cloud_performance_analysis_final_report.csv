@@ -1,0 +1,35 @@
+# EHR Blockchain Cloud Performance Analysis - Final Report CSV
+# Academic Research - Master's Dissertation
+# Generated: 2026-02-19 18:59:37 UTC
+# System: Hyperledger Fabric v2.5.10
+# Deployment: 3 Azure VMs (Standard_B1ms), Docker Swarm overlay
+# Region: northcentralus
+#
+# Cloud Performance Summary Report - Academic Research
+# Deployment: 3 Azure VMs (Standard_B1ms), Docker Swarm overlay, northcentralus
+# Generated: Thu Feb 19 18:59:36 UTC 2026
+
+Operation_Type,Sample_Size,Mean_ms,Std_Dev_ms,P50_ms,P95_ms,P99_ms,Range_ms
+CreateEHR,500,117.439000,6.000000,116.553421000,127.812721000,135.218879000,106.571693000-150.971522000
+ReadEHR (same-org),500,86.744000,2.828000,86.369644000,91.147444000,98.741118000,81.176709000-117.740575000
+ReadEHR (cross-org),500,74.528000,3.000000,73.991762000,79.507341000,87.268932000,69.412292000-103.015833000
+UpdateEHR,500,115.968000,5.656000,114.896585000,127.286801000,134.138266000,106.215734000-142.180262000
+Consent (Grant/Revoke),500,114.633000,12.165000,111.942713000,141.124176000,160.092554000,98.357025000-193.977462000
+Unauthorized Read,500,75.625000,4.123000,74.648370000,86.027877000,90.227226000,69.383178000-97.516687000
+
+# Cloud Throughput Analysis
+# Deployment: 3 Azure VMs (Standard_B1ms), Docker Swarm overlay
+Operation_Type,Sample_Size,TPS,Duration_Seconds,Deployment
+CreateEHR,500,8.06,62.03,Cloud (3 VMs)
+ReadEHR,500,10.47,47.75,Cloud (3 VMs)
+UpdateEHR,500,8.31,60.16,Cloud (3 VMs)
+Consent,500,8.26,60.53,Cloud (3 VMs)
+Cross-Org,500,12.14,41.18,Cloud (3 VMs)
+
+# Cloud Parallel Scaling Analysis Results
+# VM Size: Standard_B1ms (1 vCPU, 2 GB RAM)
+Workers,Test_Type,Total_Transactions,Success_Rate,Total_TPS,TPS_Per_Worker,Scaling_Efficiency_Percent,Test_Duration_Seconds
+1,CROSS_ORG,100,100.00,9.41,9.41,N/A,10.624364723
+2,CROSS_ORG,200,100.00,9.58,4.79,N/A,20.856489414
+4,CROSS_ORG,400,100.00,9.41,2.35,N/A,42.507271585
+8,CROSS_ORG,800,100.00,9.26,1.15,N/A,86.377935012

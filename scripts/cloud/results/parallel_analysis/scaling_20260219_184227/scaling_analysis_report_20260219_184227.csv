@@ -1,0 +1,10 @@
+# Comprehensive Cloud Scaling Analysis Report
+# Timestamp: 20260219_184227
+# Deployment: Azure B1ms (1 vCPU, 2 GB RAM)
+# System: 1 vCPUs
+# Test Type: cross_org
+# Base Iterations: 800
+# Worker Counts: 1 2 4 8
+# Academic Standard: Statistical significance maintained across all scaling points
+
+WORKERS,TOTAL_ITERATIONS,ITERATIONS_PER_WORKER,SUCCESSFUL_TRANSACTIONS,FAILED_TRANSACTIONS,SUCCESS_RATE,OVERALL_TPS,TOTAL_TIME,TPS_PER_WORKER,SCALING_EFFICIENCY,RESOURCE_UTILIZATION
