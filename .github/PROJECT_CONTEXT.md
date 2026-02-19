@@ -11,7 +11,6 @@ Identical chaincode and methodology, different deployment targets.
 - **Remote**: `git@github.com-vtr:vtrlindbergh/ehr-management-modules.git`
 - **Branch**: `feature/phase1-distributed-deployment`
 - **Latest commit**: `cf89142` — Phase 3: Deploy Fabric network across Docker Swarm
-- **SSH config**: uses `Host github.com-vtr` with `~/.ssh/id_ed25519_vtr`
 
 ## Tech Stack
 - Hyperledger Fabric **2.5.10**, CA **1.5.12**
