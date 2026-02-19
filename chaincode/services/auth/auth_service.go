@@ -12,18 +12,26 @@ import (
 
 type AuthService struct{}
 
-// GetClientIdentity retrieves the 'hf.EnrollmentID' from the client certificate.
+// GetClientIdentity retrieves the client identity from the certificate.
+// Prefers 'hf.EnrollmentID' attribute (Fabric CA certs), falls back to GetID() (cryptogen certs).
 func (a *AuthService) GetClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
+	// Try hf.EnrollmentID first (available with Fabric CA-issued certs)
 	enrollmentID, found, err := ctx.GetClientIdentity().GetAttributeValue("hf.EnrollmentID")
+	if err == nil && found && enrollmentID != "" {
+		return enrollmentID, nil
+	}
+
+	// Fallback to GetID() which works with any X.509 certificate (including cryptogen)
+	clientID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		log.Printf("Error reading 'hf.EnrollmentID': %v", err)
-		return "", fmt.Errorf("error reading 'hf.EnrollmentID': %v", err)
+		log.Printf("Error reading client identity: %v", err)
+		return "", fmt.Errorf("failed to get client identity: %v", err)
 	}
-	if !found || enrollmentID == "" {
-		log.Printf("No valid 'hf.EnrollmentID' found in the certificate")
-		return "", fmt.Errorf("no valid 'hf.EnrollmentID' found in the certificate")
+	if clientID == "" {
+		return "", fmt.Errorf("empty client identity")
 	}
-	return enrollmentID, nil
+	log.Printf("Using certificate-based identity: %s", clientID)
+	return clientID, nil
 }
 
 // IsProviderAuthorized checks whether the current client is the creator or is listed in the patient's consent.

@@ -1,0 +1,13 @@
+# Cryptogen config for Org2 peer
+# Cloud deployment — 3-VM distributed setup
+PeerOrgs:
+  - Name: Org2
+    Domain: org2.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+      SANS:
+        - localhost
+        - 10.0.3.4
+    Users:
+      Count: 1

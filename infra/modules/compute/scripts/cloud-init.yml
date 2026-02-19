@@ -46,8 +46,12 @@ runcmd:
   - rm -rf /usr/local/go
   - tar -C /usr/local -xzf go1.22.7.linux-amd64.tar.gz
   
-  # Create hyperledger directories
-  - mkdir -p /opt/hyperledger/{fabric-samples,chaincode,config,crypto-config,logs}
+  # Create hyperledger directories (no brace expansion — cloud-init uses /bin/sh)
+  - mkdir -p /opt/hyperledger/fabric-samples
+  - mkdir -p /opt/hyperledger/chaincode
+  - mkdir -p /opt/hyperledger/config
+  - mkdir -p /opt/hyperledger/crypto-config
+  - mkdir -p /opt/hyperledger/logs
   - chown -R ${admin_username}:${admin_username} /opt/hyperledger
   
   # Install Hyperledger Fabric 2.5.10 binaries (matching local dev environment)

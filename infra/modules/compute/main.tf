@@ -11,24 +11,24 @@ locals {
   } : {
     orderer = {
       name        = "vm-${var.project_name}-orderer-${var.environment}"
-      size        = "Standard_B2s"  # 2 vCPUs, 4 GB RAM
+      size        = "Standard_B1ms"  # 1 vCPU, 2 GB RAM (fits 4-core student quota: 3x1=3)
       subnet_id   = var.subnet_ids.orderer
       os_disk_size = 32
-      data_disk_size = 64
+      data_disk_size = 32
     }
     org1 = {
       name        = "vm-${var.project_name}-org1-${var.environment}"
-      size        = "Standard_B2s"  # 2 vCPUs, 4 GB RAM (Fabric peer + chaincode needs >1GB)
+      size        = "Standard_B1ms"  # 1 vCPU, 2 GB RAM (fits 4-core student quota: 3x1=3)
       subnet_id   = var.subnet_ids.org1
       os_disk_size = 32
-      data_disk_size = 64
+      data_disk_size = 32
     }
     org2 = {
       name        = "vm-${var.project_name}-org2-${var.environment}"
-      size        = "Standard_B2s"  # 2 vCPUs, 4 GB RAM (Fabric peer + chaincode needs >1GB)
+      size        = "Standard_B1ms"  # 1 vCPU, 2 GB RAM (fits 4-core student quota: 3x1=3)
       subnet_id   = var.subnet_ids.org2
       os_disk_size = 32
-      data_disk_size = 64
+      data_disk_size = 32
     }
   }
 }

@@ -1,0 +1,11 @@
+# Cryptogen config for orderer organization
+# Cloud deployment — 3-VM distributed setup
+OrdererOrgs:
+  - Name: Orderer
+    Domain: example.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+        SANS:
+          - localhost
+          - 10.0.1.4
