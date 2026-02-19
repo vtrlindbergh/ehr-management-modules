@@ -1,7 +1,7 @@
 # EHR Blockchain - Project Context for AI Sessions
 
 > **Purpose**: Resume context in new chat windows. Feed this file to the AI at session start.
-> **Last updated**: 2026-02-19 (Phase 3 complete)
+> **Last updated**: 2026-02-19 (Phase 4 — cloud performance scripts created)
 
 ## Project Goal
 Master's dissertation: compare local vs cloud Hyperledger Fabric performance for EHR CRUD operations.
@@ -9,8 +9,8 @@ Identical chaincode and methodology, different deployment targets.
 
 ## Repository
 - **Remote**: `git@github.com-vtr:vtrlindbergh/ehr-management-modules.git`
-- **Branch**: `feature/phase1-distributed-deployment`
-- **Latest commit**: `cf89142` — Phase 3: Deploy Fabric network across Docker Swarm
+- **Branch**: `feature/phase4-cloud-performance-scripts`
+- **Latest commit**: Phase 4: Cloud performance testing scripts
 
 ## Tech Stack
 - Hyperledger Fabric **2.5.10**, CA **1.5.12**
@@ -42,6 +42,13 @@ Identical chaincode and methodology, different deployment targets.
 | `scripts/cloud/setup/configtx.yaml` | Channel config (2 orgs, Raft) |
 | `scripts/cloud/setup/deploy_network.sh` | Full deployment automation (11 steps) |
 | `scripts/performance/` | Local performance test scripts |
+| `scripts/cloud/performance/config.sh` | Cloud config (VM IPs, paths, deployment metadata) |
+| `scripts/cloud/performance/ehr_operations.sh` | Cloud CRUD operations (TLS hostname override) |
+| `scripts/cloud/performance/cloud_latency_analysis.sh` | Cloud latency testing (P50/P95/P99) |
+| `scripts/cloud/performance/cloud_throughput_test.sh` | Cloud TPS measurement |
+| `scripts/cloud/performance/cloud_parallel_test.sh` | Cloud parallel scaling (max 8 workers) |
+| `scripts/cloud/performance/cloud_generate_summary_report.sh` | Cloud report generation |
+| `scripts/cloud/results/` | Cloud test results (separate from local) |
 | `infra/` | Terraform modules (compute, network, storage) |
 | `EXECUTION_PLAN.md` | 5-phase execution plan |
 
@@ -74,14 +81,19 @@ export ORDERER_CA=/opt/hyperledger/organizations/ordererOrganizations/example.co
 | 1 — Deploy 3 Azure VMs | ✅ Done |
 | 2 — Docker Swarm cluster | ✅ Done |
 | 3 — Deploy Fabric network | ✅ Done |
-| 4 — Adapt & run cloud performance scripts | ⬜ Next |
-| 5 — Collect data & destroy infra | ⬜ Pending |
+| 4 — Adapt & run cloud performance scripts | ✅ Scripts created |
+| 5 — Collect data & destroy infra | ⬜ Next |
 
-## Phase 4 — What's Next
-Adapt the local performance scripts (`scripts/performance/`) for cloud execution.
-These scripts test: latency, throughput, parallel operations, scaling.
-They need to be modified to target the cloud VMs instead of localhost.
-The same CRUD operations and methodology used locally must be replicated for a fair comparison.
+## Phase 4 — Cloud Performance Scripts (Created)
+All scripts adapted from `scripts/performance/` → `scripts/cloud/performance/`.
+Key adaptations: VM IPs instead of localhost, `/opt/hyperledger/` paths, `--ordererTLSHostnameOverride`, max 8 parallel workers (B1ms constraint).
+Same chaincode, same CRUD operations, same CSV format — enables direct local vs cloud comparison.
+
+### Next: Phase 5
+1. SSH to Org1 VM → run cloud performance scripts
+2. Download results to local → `scripts/cloud/results/`
+3. Compare local vs cloud metrics
+4. `terraform destroy` to clean up Azure resources
 
 ## Known Issues / Gotchas
 - Azure Student subscription: max 4 `standardBSFamily` vCPUs in northcentralus
