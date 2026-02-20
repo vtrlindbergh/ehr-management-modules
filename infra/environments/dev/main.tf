@@ -22,7 +22,11 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    virtual_machine {
+      skip_shutdown_and_force_delete = true
+    }
+  }
   
   # Skip automatic resource provider registration for Student accounts
   # This prevents timeout issues while maintaining functionality
